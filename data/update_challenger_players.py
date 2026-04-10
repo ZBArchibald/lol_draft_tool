@@ -4,22 +4,19 @@
 ###
 
 import sqlite3
-import utils
 import requests
-
-API_KEY = utils.get_api_key()
-REGION = "na1" 
-MATCH_REGION = "americas"
-
-# set the headers with the API key for authentication
-headers = {"X-Riot-Token": API_KEY}
+from config import API_KEY, REGION ####this is probably not the right way to do this
 
 def get_challenger_puuids():
     # set the API endpoint for retrieving challenger league data
     url = f"https://{REGION}.api.riotgames.com/lol/league/v4/challengerleagues/by-queue/RANKED_SOLO_5x5"
 
+    # set the headers with the API key for authentication
+    headers = {"X-Riot-Token": API_KEY}
+
     # make the API request to get the challenger league data and convert the JSON-string response to JSON
     response = requests.get(url, headers=headers)
+    
     challenger_data = response.json()
 
     # retrieve the list of entries (players and their data).
@@ -36,19 +33,19 @@ def update_challenger_players_table():
     puuids = get_challenger_puuids()
     
     #connect to the database
-    conn = sqlite3.connect("riot_data.db")
+    conn = sqlite3.connect("data/riot_data.db")
     c = conn.cursor() 
     ##what is a cursor in this context?
 
     #mark all players as not currently challenger
-    c.execute("UPDATE challenger_players SET is_challenger = 0")
+    c.execute("UPDATE challenger_players SET currently_challenger = 0")
 
     #for each puuid in the updated list of challenger puuids, add them to the database (if they are not already there), and mark them as currently challenger
     for puuid in puuids:
         c.execute("""
-            INSERT INTO challenger_players (puuid, is_challenger)
+            INSERT INTO challenger_players (puuid, currently_challenger)
             VALUES (?, 1)
-            ON CONFLICT(puuid) DO UPDATE SET is_challenger = 1
+            ON CONFLICT(puuid) DO UPDATE SET currently_challenger = 1
         """, (puuid,))
         ##don't understand this SQL statement.
 
@@ -56,3 +53,6 @@ def update_challenger_players_table():
     conn.commit()
     conn.close()
 
+#if __name__ == "__main__":
+#    update_challenger_players_table()
+#    print("update complete")

@@ -1,14 +1,11 @@
 verify that update_challenger_players.py works/is complete
-
-find out how to 
-
+    ---first pass looks like it is gathering 300 puuids and populating the table.
 
 
 
 design match_retrieval.py which entails figuring out exactly how to 
     retrieve each challenger match from each challenger player and properly add it to the matches table.
     and scheduling this process somehow
-
 
 design process_matches which entails 
     picking? matches from the matches table that have yet to be processed, processing them (trimming the match data) into data for the champion stats table,
