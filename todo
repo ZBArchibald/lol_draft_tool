@@ -1,14 +1,18 @@
+complete the game_patch program -- better understand this.
+
 verify that update_challenger_players.py works/is complete
     ---first pass looks like it is gathering 300 puuids and populating the table.
-
-
+    ---should try catch all of this and add logging functinoality 
 
 design match_retrieval.py which entails figuring out exactly how to 
     retrieve each challenger match from each challenger player and properly add it to the matches table.
     and scheduling this process somehow
+        ---if a player has had a match injested before, work towards newer matches
+        ---if a player has not have any matches injested before, work towards older matches till the end of the patch.
 
 design process_matches which entails 
     picking? matches from the matches table that have yet to be processed, processing them (trimming the match data) into data for the champion stats table,
     and sceduling this process somehow.
 
-finishing designed the champion stats table (i think this should be quadratic and contain each champs performance against each other champ.)
+I need to figure out how to schedule my code exections
+I need to figure out exactly how i can most efficiently access a players matches only within the current patch
