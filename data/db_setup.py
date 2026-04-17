@@ -5,6 +5,15 @@ import sqlite3
 conn = sqlite3.connect("data/riot_data.db")
 c = conn.cursor()
 
+# create a metadata table for global information relevant to the database
+c.execute("""
+CREATE TABLE IF NOT EXISTS metadata (
+    key TEXT PRIMARY KEY,
+    value TEXT,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);          
+          """)
+
 # create the challenger_players table to store the player universally unique identitifiers (puuids) of challenger players, the last time their match data was retrieved, and whether or not they are currently challenger.
 c.execute("""
 CREATE TABLE IF NOT EXISTS challenger_players (
