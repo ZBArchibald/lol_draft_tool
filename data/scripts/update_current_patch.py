@@ -22,7 +22,6 @@ def get_latest_patch():
     except Exception as e:
         raise RuntimeError(f"Failed to parse patch data: {e}")
 
-
 if __name__ == "__main__":
     latest_patch = get_latest_patch()
     print(latest_patch)

@@ -4,6 +4,7 @@
 ###
 
 import sqlite3
+from urllib import response
 import requests
 from config import API_KEY, REGION, DB_PATH ####this is probably not the right way to do this
 
@@ -16,6 +17,8 @@ def get_challenger_puuids():
 
     # make the API request to get the challenger league data and convert the JSON-string response to JSON
     response = requests.get(url, headers=headers)
+    print(response.status_code)
+    print(response.text)
     
     challenger_data = response.json()
 
@@ -53,6 +56,6 @@ def update_challenger_players_table():
     conn.commit()
     conn.close()
 
-#if __name__ == "__main__":
-#    update_challenger_players_table()
-#    print("update complete")
+if __name__ == "__main__":
+    update_challenger_players_table()
+    print("update complete")
