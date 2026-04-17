@@ -5,7 +5,7 @@
 
 import sqlite3
 import requests
-from config import API_KEY, REGION ####this is probably not the right way to do this
+from config import API_KEY, REGION, DB_PATH ####this is probably not the right way to do this
 
 def get_challenger_puuids():
     # set the API endpoint for retrieving challenger league data
@@ -33,7 +33,7 @@ def update_challenger_players_table():
     puuids = get_challenger_puuids()
     
     #connect to the database
-    conn = sqlite3.connect("data/riot_data.db")
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor() 
     ##what is a cursor in this context?
 
