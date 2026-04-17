@@ -2,7 +2,7 @@
 # fetches the latest League of Legends game patch from Data Dragon
 
 import requests
-from database_utils import update_metadata
+from data.database_utils import update_metadata
 
 URL = "https://ddragon.leagueoflegends.com/api/versions.json"
 
@@ -26,4 +26,3 @@ def get_current_patch():
 if __name__ == "__main__":
     current_patch = get_current_patch()
     update_metadata("current_patch", current_patch)
-    print(f"Updated current patch to: {current_patch}")
