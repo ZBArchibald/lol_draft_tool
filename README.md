@@ -10,26 +10,38 @@ lol_draft_tool/
 |-- db/
 |   `-- lol_draft.sqlite3
 |-- scripts/
+|   |-- daily_maintenance.py
 |   |-- init_db.py
-|   `-- run_match_sync.py
+|   |-- run_match_sync.py
+|   `-- update_challengers.py
 |-- src/
+|   |-- __init__.py
 |   |-- core/
+|   |   |-- __init__.py
 |   |   `-- config.py
 |   |-- db/
+|   |   |-- __init__.py
 |   |   |-- connection.py
 |   |   |-- init_db.py
 |   |   |-- queries.py
 |   |   `-- schema.py
 |   |-- external/
+|   |   |-- __init__.py
 |   |   `-- riot_api.py
 |   |-- pipeline/
-|   |   `-- match_sync.py
+|   |   |-- __init__.py
+|   |   |-- challenger_update.py
+|   |   |-- match_sync.py
+|   |   `-- patch_maintenance.py
 |   |-- services/
+|   |   |-- __init__.py
 |   |   `-- match_service.py
 |   `-- utils/
+|       |-- __init__.py
 |       `-- helpers.py
 |-- tests/
 |-- .env
+|-- .gitignore
 |-- README.md
 `-- requirements.txt
 ```
@@ -51,5 +63,7 @@ RIOT_API_KEY=your-api-key
 
 ```powershell
 python scripts/init_db.py
+python scripts/update_challengers.py
 python scripts/run_match_sync.py
+python scripts/daily_maintenance.py
 ```
