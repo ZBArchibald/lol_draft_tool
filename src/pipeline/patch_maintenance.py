@@ -3,12 +3,6 @@ from src.db.queries import get_metadata_value, update_metadata
 from src.external.riot_api import get_current_patch
 
 
-def update_current_patch() -> str:
-    current_patch = get_current_patch()
-    update_metadata("current_patch", current_patch)
-    return current_patch
-
-
 def archive_and_clear_on_patch_change() -> None:
     try:
         previous_patch = get_metadata_value("current_patch")
@@ -24,3 +18,9 @@ def archive_and_clear_on_patch_change() -> None:
             cursor.execute("DELETE FROM processed_matches")
             cursor.execute("DELETE FROM champion_relationships")
             cursor.execute("DELETE FROM challenger_players")
+            
+
+def update_current_patch() -> str:
+    current_patch = get_current_patch()
+    update_metadata("current_patch", current_patch)
+    return current_patch
