@@ -1,27 +1,6 @@
-from src.db.queries import (
-    get_challenger_puuids,
-    match_in_db,
-    replace_challenger_players,
-    update_metadata,
-)
-from src.external.riot_api import (
-    get_challenger_league_puuids,
-    get_current_patch,
-    get_match_data,
-    get_match_ids,
-)
+from src.db.queries import get_challenger_puuids, match_in_db
+from src.external.riot_api import get_match_data, get_match_ids
 from src.services.match_service import is_on_current_patch, process_match
-
-
-def update_current_patch() -> str:
-    current_patch = get_current_patch()
-    update_metadata("current_patch", current_patch)
-    return current_patch
-
-
-def update_challenger_players() -> None:
-    puuids = get_challenger_league_puuids()
-    replace_challenger_players(puuids)
 
 
 def sync_all_challenger_matches(batch_size: int = 20) -> None:
