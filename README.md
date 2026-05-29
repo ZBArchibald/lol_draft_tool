@@ -31,6 +31,8 @@ lol_draft_tool/
 |   |-- pipeline/
 |   |   |-- __init__.py
 |   |   |-- challenger_update.py
+|   |   |-- match_ingest.py
+|   |   |-- match_process.py
 |   |   |-- match_sync.py
 |   |   `-- patch_maintenance.py
 |   |-- services/
@@ -91,7 +93,8 @@ Files added/changed in this refactor:
 - `pyproject.toml` (minimal build-system)
 - `setup.cfg` (package metadata / dependencies)
 - `scripts/*` — cleaned `sys.path` insertion and use top-level imports
-- moved match processing into `src/pipeline/match_sync.py` (removed
-	`src/services/match_service.py`)
+- split `src/pipeline/match_sync.py` into `src/pipeline/match_ingest.py` and
+  `src/pipeline/match_process.py`, with `src/pipeline/match_sync.py` kept as a
+  thin re-export shim
 
 If you'd like, I can add a short `pytest` example and CI config next.
