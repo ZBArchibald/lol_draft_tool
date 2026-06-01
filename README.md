@@ -68,33 +68,3 @@ python scripts/update_challengers.py
 python scripts/run_match_sync.py
 python scripts/daily_maintenance.py
 ```
-
-## Packaging (recommended)
-
-This project now includes minimal packaging so you can install it in editable
-mode and avoid `sys.path` hacks in the `scripts/` files.
-
-Install editable:
-
-```bash
-python -m pip install --upgrade pip
-python -m pip install -e .
-```
-
-After installing editable you can run the scripts directly (they use
-top-level imports):
-
-```bash
-python scripts/run_match_sync.py
-python scripts/update_challengers.py
-```
-
-Files added/changed in this refactor:
-- `pyproject.toml` (minimal build-system)
-- `setup.cfg` (package metadata / dependencies)
-- `scripts/*` — cleaned `sys.path` insertion and use top-level imports
-- split `src/pipeline/match_sync.py` into `src/pipeline/match_ingest.py` and
-  `src/pipeline/match_process.py`, with `src/pipeline/match_sync.py` kept as a
-  thin re-export shim
-
-If you'd like, I can add a short `pytest` example and CI config next.
