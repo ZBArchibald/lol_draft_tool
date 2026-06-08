@@ -22,7 +22,6 @@ lol_draft_tool/
 |   |-- db/
 |   |   |-- __init__.py
 |   |   |-- connection.py
-|   |   |-- init_db.py
 |   |   |-- queries.py
 |   |   `-- schema.py
 |   |-- external/

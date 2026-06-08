@@ -1,12 +1,6 @@
 from src.db.connection import db_connection
-from src.db.queries import get_metadata_value, insert_processed_match
-from src.utils.helpers import truncate_patch_id
+from src.db.queries import insert_processed_match
 
-
-def is_on_current_patch(match_data: dict) -> bool:
-    current_patch = get_metadata_value("current_patch")
-    match_patch = truncate_patch_id(match_data["info"]["gameVersion"])
-    return match_patch == current_patch
 
 
 def process_match(match_data: dict) -> None:

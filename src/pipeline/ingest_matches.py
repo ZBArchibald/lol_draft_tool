@@ -1,7 +1,7 @@
-from src.db.queries import get_challenger_puuids, match_in_db
+from src.db.queries import get_challenger_puuids, get_metadata_value, match_in_db
 from src.external.riot_api import get_match_data, get_match_ids
-from src.pipeline.match_process import is_on_current_patch, process_match
-
+from src.pipeline.process_match import process_match
+from src.utils.helpers import truncate_patch_id
 
 def sync_all_challenger_matches(batch_size: int = 20) -> None:
     for puuid in get_challenger_puuids():
@@ -34,3 +34,8 @@ def sync_player_matches(puuid: str, batch_size: int = 20) -> None:
             process_match(match_data)
 
         start_index += batch_size
+
+def is_on_current_patch(match_data: dict) -> bool:
+    current_patch = get_metadata_value("current_patch")
+    match_patch = truncate_patch_id(match_data["info"]["gameVersion"])
+    return match_patch == current_patch
