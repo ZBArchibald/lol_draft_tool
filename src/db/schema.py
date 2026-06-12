@@ -22,6 +22,13 @@ SCHEMA_STATEMENTS = (
     )
     """,
     """
+    CREATE TABLE IF NOT EXISTS champion_stats (
+        champion_name TEXT PRIMARY KEY,
+        wins INTEGER DEFAULT 0,
+        games INTEGER DEFAULT 0
+    )
+    """,
+    """
     CREATE TABLE IF NOT EXISTS champion_relationships (
         champion_name TEXT,
         other_champion_name TEXT,
@@ -31,7 +38,8 @@ SCHEMA_STATEMENTS = (
         games_as_opponent INTEGER DEFAULT 0,
         PRIMARY KEY (champion_name, other_champion_name)
     )
-    """,
+    """
+    
 )
 
 

@@ -35,7 +35,7 @@ def sync_player_matches(puuid: str, batch_size: int = 20) -> None:
 
         start_index += batch_size
 
-def is_on_current_patch(match_data: dict) -> bool:
+def is_on_current_patch(match_data: list) -> bool:
     current_patch = get_metadata_value("current_patch")
     match_patch = truncate_patch_id(match_data["info"]["gameVersion"])
     return match_patch == current_patch

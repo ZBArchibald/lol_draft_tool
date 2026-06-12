@@ -1,3 +1,5 @@
+import sqlite3
+
 from src.db.connection import db_connection, get_connection
 
 
@@ -47,7 +49,7 @@ def replace_challenger_players(puuids: list[str]) -> None:
         for puuid in puuids:
             cursor.execute(
                 "INSERT INTO challenger_players (puuid, currently_challenger) VALUES (?, 1)",
-                (puuid,),
+                [puuid],
             )
 
 
@@ -61,9 +63,8 @@ def match_in_db(match_id: str) -> bool:
         conn.close()
 
 
-def insert_processed_match(match_id: str) -> None:
-    with db_connection() as conn:
-        conn.execute(
-            "INSERT INTO processed_matches (match_id) VALUES (?)",
-            (match_id,),
-        )
+def insert_processed_match(conn: sqlite3.Connection, match_id: str) -> None:
+    conn.execute(
+        "INSERT INTO processed_matches (match_id) VALUES (?)",
+        [match_id],
+    )
