@@ -1,5 +1,9 @@
 from src.db.connection import db_connection
-from src.db.queries import get_metadata_value, update_metadata
+from src.db.queries import (
+    clear_all_match_data,
+    get_metadata_value,
+    update_metadata,
+)
 from src.external.riot_api import get_current_patch
 
 
@@ -14,11 +18,8 @@ def archive_and_clear_on_patch_change() -> None:
     if previous_patch and previous_patch != current_patch:
         print(f"Patch changed from {previous_patch} to {current_patch}. Clearing old match data.")
         with db_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute("DELETE FROM processed_matches")
-            cursor.execute("DELETE FROM champion_relationships")
-            cursor.execute("DELETE FROM challenger_players")
-            
+            clear_all_match_data(conn)
+
 
 def update_current_patch() -> str:
     current_patch = get_current_patch()
