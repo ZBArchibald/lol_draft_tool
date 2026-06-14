@@ -54,16 +54,29 @@ def update_champion_stats(conn, match_data: dict) -> None:
 
     for participant in participants:
         champion = participant["championName"]
+        position = participant["teamPosition"]
         won = participant["win"]
 
+        position_map = {
+            "TOP" : "games_top",
+            "JUNGLE" : "games_jungle",
+            "MIDDLE" : "games_mid",
+            "BOTTOM" : "games_bot",
+            "UTILITY" : "games_support"
+        }
+        role_column = position_map.get(position)
+        if role_column is None:
+            continue
+
         cursor.execute(
-            """
-            INSERT INTO champion_stats (champion_name, wins, games)
-            VALUES (?, ?, 1)
+            f"""
+            INSERT INTO champion_stats (champion_name, wins, games, {role_column})
+            VALUES (?, ?, 1, 1)
             ON CONFLICT(champion_name)
             DO UPDATE SET
                 games = games + 1,
-                wins = wins + excluded.wins
+                wins = wins + excluded.wins,
+                {role_column} = {role_column} + 1
             """,
             (champion, int(won)),
         )

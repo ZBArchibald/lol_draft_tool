@@ -25,7 +25,12 @@ SCHEMA_STATEMENTS = (
     CREATE TABLE IF NOT EXISTS champion_stats (
         champion_name TEXT PRIMARY KEY,
         wins INTEGER DEFAULT 0,
-        games INTEGER DEFAULT 0
+        games INTEGER DEFAULT 0,
+        games_top INTEGER DEFAULT 0,
+        games_jungle INTEGER DEFAULT 0,
+        games_mid INTEGER DEFAULT 0,
+        games_bot INTEGER DEFAULT 0,
+        games_support INTEGER DEFAULT 0
     )
     """,
     """
