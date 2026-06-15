@@ -1,5 +1,5 @@
-from src.db.connection import db_connection
-from src.db.queries import (
+from lol_draft_tool.db.connection import db_connection
+from lol_draft_tool.db.queries import (
     get_challenger_puuids,
     get_metadata_value,
     insert_processed_match,
@@ -7,8 +7,8 @@ from src.db.queries import (
     update_champion_relationships,
     update_champion_stats,
 )
-from src.external.riot_api import get_match_data, get_match_ids
-from src.utils.helpers import truncate_patch_id
+from lol_draft_tool.external.riot_api import get_match_data, get_match_ids
+from lol_draft_tool.utils.helpers import truncate_patch_id
 
 
 def sync_all_challenger_matches(batch_size: int = 20) -> None:

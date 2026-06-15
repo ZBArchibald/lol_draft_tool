@@ -1,3 +1,22 @@
 [build-system]
 requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "lol-draft-tool"
+version = "0.1.0"
+description = "League of Legends draft data tooling"
+requires-python = ">=3.11"
+dependencies = [
+    "python-dotenv",
+    "requests",
+]
+
+[project.scripts]
+ldt-init-db = "lol_draft_tool.cli.init_db:main"
+ldt-daily-maintenance = "lol_draft_tool.cli.daily_maintenance:main"
+ldt-update-challengers = "lol_draft_tool.cli.update_challengers:main"
+ldt-run-match-sync = "lol_draft_tool.cli.run_match_sync:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

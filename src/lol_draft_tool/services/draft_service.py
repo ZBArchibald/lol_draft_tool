@@ -1,4 +1,4 @@
-from src.domain.draft_state import DraftState
+from lol_draft_tool.domain.draft_state import DraftState
 
 def recommend_champions(draft_state: DraftState) -> dict:
     

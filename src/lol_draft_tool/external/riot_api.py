@@ -1,6 +1,6 @@
 import requests
 
-from src.core.config import API_KEY, MATCH_REGION, QUEUE_ID, REGION
+from lol_draft_tool.core.config import API_KEY, MATCH_REGION, QUEUE_ID, REGION
 
 DATA_DRAGON_VERSIONS_URL = "https://ddragon.leagueoflegends.com/api/versions.json"
 
