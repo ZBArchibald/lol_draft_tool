@@ -1,5 +1,5 @@
-from src.pipeline.challenger_update import update_challenger_players
+from pipeline.ladder_update import update_ladder
 
 
 if __name__ == "__main__":
-    update_challenger_players()
+    update_ladder()

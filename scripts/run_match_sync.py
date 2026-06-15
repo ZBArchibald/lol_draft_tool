@@ -1,4 +1,4 @@
-from src.pipeline.ingest_matches import sync_all_challenger_matches
+from pipeline.ingest_and_process_matches import sync_all_challenger_matches
 
 
 if __name__ == "__main__":
