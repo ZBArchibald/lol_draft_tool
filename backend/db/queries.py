@@ -1,6 +1,6 @@
 import sqlite3
 
-from lol_draft_tool.db.connection import db_connection, get_connection
+from backend.db.connection import db_connection, get_connection
 
 
 def get_metadata_value(key: str) -> str:

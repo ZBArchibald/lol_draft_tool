@@ -1,10 +1,10 @@
-from lol_draft_tool.db.connection import db_connection
-from lol_draft_tool.db.queries import (
+from backend.db.connection import db_connection
+from backend.db.queries import (
     clear_all_match_data,
     get_metadata_value,
     update_metadata,
 )
-from lol_draft_tool.external.riot_api import get_current_patch
+from backend.external.riot_api import get_current_patch
 
 
 def archive_and_clear_on_patch_change() -> None:

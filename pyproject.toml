@@ -13,10 +13,10 @@ dependencies = [
 ]
 
 [project.scripts]
-ldt-init-db = "lol_draft_tool.cli.init_db:main"
-ldt-daily-maintenance = "lol_draft_tool.cli.daily_maintenance:main"
-ldt-update-challengers = "lol_draft_tool.cli.update_challengers:main"
-ldt-run-match-sync = "lol_draft_tool.cli.run_match_sync:main"
+ldt-init-db = "backend.cli.init_db:main"
+ldt-daily-maintenance = "backend.cli.daily_maintenance:main"
+ldt-update-challengers = "backend.cli.update_challengers:main"
+ldt-run-match-sync = "backend.cli.run_match_sync:main"
 
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["backend"]

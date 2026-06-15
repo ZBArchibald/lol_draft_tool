@@ -1,4 +1,4 @@
-from lol_draft_tool.db.connection import db_connection
+from backend.db.connection import db_connection
 
 
 SCHEMA_STATEMENTS = (

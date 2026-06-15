@@ -2,7 +2,7 @@ import sqlite3
 from collections.abc import Iterator
 from contextlib import contextmanager
 
-from lol_draft_tool.core.config import DB_PATH
+from backend.core.config import DB_PATH
 
 
 def get_connection() -> sqlite3.Connection:

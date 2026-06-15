@@ -9,38 +9,45 @@ building champion relationship statistics.
 lol_draft_tool/
 |-- .env
 |-- .gitignore
+|-- backend/
+|   |-- __init__.py
+|   |-- cli/
+|   |   |-- daily_maintenance.py
+|   |   |-- init_db.py
+|   |   |-- run_match_sync.py
+|   |   `-- update_challengers.py
+|   |-- core/
+|   |   |-- __init__.py
+|   |   `-- config.py
+|   |-- db/
+|   |   |-- __init__.py
+|   |   |-- connection.py
+|   |   |-- queries.py
+|   |   `-- schema.py
+|   |-- domain/
+|   |   |-- __init__.py
+|   |   `-- draft_state.py
+|   |-- external/
+|   |   |-- __init__.py
+|   |   `-- riot_api.py
+|   |-- pipeline/
+|   |   |-- __init__.py
+|   |   |-- ingest_and_process_matches.py
+|   |   |-- patch_maintenance.py
+|   |   `-- update_ladder.py
+|   |-- services/
+|   |   |-- __init__.py
+|   |   `-- draft_service.py
+|   |-- utils/
+|   |   |-- __init__.py
+|   |   `-- helpers.py
+|   `-- __init__.py
 |-- db/
 |   `-- lol_draft.sqlite3
 |-- pyproject.toml
 |-- README.md
 |-- requirements.txt
 |-- todo
--- (compatibility wrappers removed)
-|-- src/
-|   `-- lol_draft_tool/
-|       |-- cli/
-|       |   |-- daily_maintenance.py
-|       |   |-- init_db.py
-|       |   |-- run_match_sync.py
-|       |   `-- update_challengers.py
-|       |-- core/
-|       |   `-- config.py
-|       |-- db/
-|       |   |-- connection.py
-|       |   |-- queries.py
-|       |   `-- schema.py
-|       |-- domain/
-|       |   `-- draft_state.py
-|       |-- external/
-|       |   `-- riot_api.py
-|       |-- pipeline/
-|       |   |-- ingest_and_process_matches.py
-|       |   |-- patch_maintenance.py
-|       |   `-- update_ladder.py
-|       |-- services/
-|       |   `-- draft_service.py
-|       `-- utils/
-|           `-- helpers.py
 `-- tests/
 ```
 
@@ -48,15 +55,15 @@ lol_draft_tool/
 
 ```powershell
 python -m pip install -e .
-lol-init-db
+ltd-init-db
 ```
 
-On Windows, if `lol-init-db` is not recognized after installation, your Python
+On Windows, if `ldt-init-db` is not recognized after installation, your Python
 Scripts directory is not on `PATH`. Either add the Scripts directory reported by
 pip to `PATH`, or use the module form:
 
 ```powershell
-python -m lol_draft_tool.cli.init_db
+python -m backend.cli.init_db
 ```
 
 Create a `.env` file with your Riot API key:
@@ -75,39 +82,37 @@ LOL_DRAFT_DB_PATH=/absolute/path/to/lol_draft.sqlite3
 ## Commands
 
 ```powershell
-lol-init-db
-lol-update-challengers
-lol-run-match-sync
-lol-daily-maintenance
+ldt-init-db
+ldt-update-challengers
+ldt-run-match-sync
+ldt-daily-maintenance
 ```
 
 ## Development
 
-This repository uses a `src/` layout with the installable package in
-`src/lol_draft_tool/`. Install it in editable mode while developing:
+This repository uses a `backend/` layout with the installable package in
+`backend/`. Install it in editable mode while developing:
 
 ```powershell
 python -m pip install --upgrade pip
 python -m pip install -e .
 ```
 
-Compatibility wrappers that used to live in `scripts/` have been removed.
-Use the installed CLI commands (see `pyproject.toml` `project.scripts`) or
-run the package modules directly:
+Use the installed CLI commands (see `pyproject.toml` `project.scripts`) or run
+these package modules directly:
 
 ```powershell
-python -m lol_draft_tool.cli.init_db
-python -m lol_draft_tool.cli.update_challengers
-python -m lol_draft_tool.cli.run_match_sync
-python -m lol_draft_tool.cli.daily_maintenance
+python -m backend.cli.init_db
+python -m backend.cli.update_challengers
+python -m backend.cli.run_match_sync
+python -m backend.cli.daily_maintenance
 ```
 
 ## Notes
 
-- `src/lol_draft_tool/` contains the application logic.
-- `src/lol_draft_tool/cli/` contains CLI entrypoints for database initialization
+- `backend/` contains the application logic.
+- `backend/cli/` contains CLI entrypoints for database initialization
   and scheduled update tasks.
- - (compatibility wrappers removed)
 - `db/lol_draft.sqlite3` is the local SQLite database file used by the project.
 - `LOL_DRAFT_DB_PATH` can override the database location for hosted jobs.
 - `tests/` is available for future test coverage.

@@ -213,6 +213,9 @@ marimo/_lsp/
 __marimo__/
 
 
+
+
 todo
 interviewer_notes.txt
+*.egg-info/
 
