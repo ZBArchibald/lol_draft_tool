@@ -19,4 +19,4 @@ ldt-update-challengers = "backend.cli.update_challengers:main"
 ldt-run-match-sync = "backend.cli.run_match_sync:main"
 
 [tool.setuptools.packages.find]
-where = ["backend"]
+where = ["."]

@@ -1,3 +1,5 @@
+import logging
+
 from backend.db.connection import db_connection
 from backend.db.queries import (
     clear_all_match_data,
@@ -5,6 +7,9 @@ from backend.db.queries import (
     update_metadata,
 )
 from backend.external.riot_api import get_current_patch
+from backend.utils.helpers import truncate_patch_id
+
+LOG = logging.getLogger(__name__)
 
 
 def archive_and_clear_on_patch_change() -> None:
@@ -14,14 +19,17 @@ def archive_and_clear_on_patch_change() -> None:
         previous_patch = None
 
     current_patch = update_current_patch()
+    LOG.info("Current patch: %s", current_patch)
 
     if previous_patch and previous_patch != current_patch:
-        print(f"Patch changed from {previous_patch} to {current_patch}. Clearing old match data.")
+        LOG.info("Patch changed from %s to %s — clearing old match data", previous_patch, current_patch)
         with db_connection() as conn:
             clear_all_match_data(conn)
+    else:
+        LOG.info("No patch change detected")
 
 
 def update_current_patch() -> str:
-    current_patch = get_current_patch()
+    current_patch = truncate_patch_id(get_current_patch())
     update_metadata("current_patch", current_patch)
     return current_patch

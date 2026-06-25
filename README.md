@@ -55,12 +55,18 @@ lol_draft_tool/
 
 ```powershell
 python -m pip install -e .
-ltd-init-db
+ldt-init-db
 ```
 
 On Windows, if `ldt-init-db` is not recognized after installation, your Python
-Scripts directory is not on `PATH`. Either add the Scripts directory reported by
-pip to `PATH`, or use the module form:
+Scripts directory is not on `PATH`. Add it permanently with:
+
+```powershell
+$scripts = python -c "import sysconfig; print(sysconfig.get_path('scripts'))"
+[Environment]::SetEnvironmentVariable("PATH", $env:PATH + ";$scripts", "User")
+```
+
+Then restart your terminal. Alternatively, invoke via module:
 
 ```powershell
 python -m backend.cli.init_db

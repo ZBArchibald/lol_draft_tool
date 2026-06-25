@@ -1,4 +1,9 @@
+import logging
+
+from backend.core.config import DB_PATH
 from backend.db.connection import db_connection
+
+LOG = logging.getLogger(__name__)
 
 
 SCHEMA_STATEMENTS = (
@@ -53,3 +58,4 @@ def initialize_database() -> None:
         cursor = conn.cursor()
         for statement in SCHEMA_STATEMENTS:
             cursor.execute(statement)
+    LOG.info("Database initialized at %s", DB_PATH)

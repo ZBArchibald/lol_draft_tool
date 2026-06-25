@@ -2,7 +2,7 @@ import sqlite3
 
 from backend.db.connection import db_connection
 
-
+# metadata queries
 def get_metadata_value(key: str) -> str:
     with db_connection() as conn:
         cursor = conn.cursor()

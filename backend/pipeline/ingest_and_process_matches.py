@@ -1,3 +1,5 @@
+import logging
+
 from backend.db.connection import db_connection
 from backend.db.queries import (
     get_challenger_puuids,
@@ -10,16 +12,23 @@ from backend.db.queries import (
 from backend.external.riot_api import get_match_data, get_match_ids
 from backend.utils.helpers import truncate_patch_id
 
+LOG = logging.getLogger(__name__)
+
 
 def sync_all_challenger_matches(batch_size: int = 20) -> None:
-    for puuid in get_challenger_puuids():
+    puuids = get_challenger_puuids()
+    LOG.info("Starting match sync for %d challenger players", len(puuids))
+    for puuid in puuids:
         sync_player_matches(puuid, batch_size)
+    LOG.info("Match sync complete")
 
 
 def sync_player_matches(puuid: str, batch_size: int = 20) -> None:
     current_patch = get_metadata_value("current_patch")
+    LOG.info("Syncing player %s (patch: %s)", puuid, current_patch)
     start_index = 0
     stop_sync = False
+    processed = 0
 
     while not stop_sync:
         match_batch = get_match_ids(puuid, start_index, batch_size)
@@ -29,17 +38,23 @@ def sync_player_matches(puuid: str, batch_size: int = 20) -> None:
 
         for match_id in match_batch:
             if match_in_db(match_id):
+                LOG.debug("Stopping sync for %s: match %s already in DB", puuid, match_id)
                 stop_sync = True
                 break
 
             match_data = get_match_data(match_id)
             if not is_on_current_patch(match_data, current_patch):
+                LOG.debug("Stopping sync for %s: match %s not on current patch", puuid, match_id)
                 stop_sync = True
                 break
 
+            LOG.debug("Processing match %s", match_id)
             process_match(match_data)
+            processed += 1
 
         start_index += batch_size
+
+    LOG.info("Finished player %s: %d new matches processed", puuid, processed)
 
 
 def is_on_current_patch(match_data: dict, current_patch: str) -> bool:
