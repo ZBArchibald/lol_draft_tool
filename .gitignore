@@ -218,5 +218,9 @@ __marimo__/
 todo
 interviewer_notes.txt
 *.egg-info/
+
+
+#claude code
 CLAUDE.md
 TODO.MD
+.claudeignore
