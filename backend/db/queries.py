@@ -2,6 +2,8 @@ import sqlite3
 
 from backend.db.connection import db_connection
 
+from backend.domain.draft_state import DraftState
+
 # metadata queries
 def get_metadata_value(key: str) -> str:
     with db_connection() as conn:
@@ -148,3 +150,16 @@ def update_champion_stats(conn, participants: list[dict]) -> None:
             """,
             (champion, int(won)),
         )
+
+def get_candidate_champions(position: str, minimum_rolerate: float)-> list[str]:
+    with db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            f"""
+            SELECT champion_name FROM champion_stats
+            WHERE (games_{position} + 0.0) / games >= {minimum_rolerate}
+
+            """
+        )
+        rows = cursor.fetchall()
+        return [row[0] for row in rows]

@@ -7,6 +7,7 @@ from collections import deque
 from backend.core.config import API_KEY, MATCH_REGION, QUEUE_ID, REGION
 
 LOG = logging.getLogger(__name__)
+
 DATA_DRAGON_VERSIONS_URL = "https://ddragon.leagueoflegends.com/api/versions.json"
 
 _REQUEST_RATE_LIMIT_1S = 20
