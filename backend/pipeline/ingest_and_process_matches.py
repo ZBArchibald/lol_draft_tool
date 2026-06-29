@@ -18,8 +18,11 @@ LOG = logging.getLogger(__name__)
 def sync_all_challenger_matches(batch_size: int = 20) -> None:
     puuids = get_challenger_puuids()
     LOG.info("Starting match sync for %d challenger players", len(puuids))
+    
+    count = 1
     for puuid in puuids:
         sync_player_matches(puuid, batch_size)
+        LOG.info("Player %d synced", count)
     LOG.info("Match sync complete")
 
 
