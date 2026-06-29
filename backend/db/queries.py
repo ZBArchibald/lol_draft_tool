@@ -2,8 +2,6 @@ import sqlite3
 
 from backend.db.connection import db_connection
 
-from backend.domain.draft_state import DraftState
-
 # metadata queries
 def get_metadata_value(key: str) -> str:
     with db_connection() as conn:
@@ -151,15 +149,56 @@ def update_champion_stats(conn, participants: list[dict]) -> None:
             (champion, int(won)),
         )
 
-def get_candidate_champions(position: str, minimum_rolerate: float)-> list[str]:
+# draft_service queries
+
+def get_candidate_champions(position: str, minimum_rolerate: float) -> list[str]:
     with db_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(
             f"""
             SELECT champion_name FROM champion_stats
             WHERE (games_{position} + 0.0) / games >= {minimum_rolerate}
-
             """
         )
         rows = cursor.fetchall()
         return [row[0] for row in rows]
+
+
+def get_winrate(champion: str) -> float:
+    with db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT wins, games FROM champion_stats WHERE champion_name = ?",
+            (champion,)
+        )
+        row = cursor.fetchone()
+        if not row or row[1] == 0:
+            return 0.5
+        return row[0] / row[1]
+
+
+def get_champion_relationships(champion: str, other_champions: list[str]) -> dict[str, dict]:
+    if not other_champions:
+        return {}
+    placeholders = ",".join("?" * len(other_champions))
+    with db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            f"""
+            SELECT other_champion_name, wins_as_ally, games_as_ally, wins_as_opponent, games_as_opponent
+            FROM champion_relationships
+            WHERE champion_name = ?
+            AND other_champion_name IN ({placeholders})
+            """,
+            [champion] + other_champions,
+        )
+        return {
+            row[0]: {
+                "wins_as_ally": row[1],
+                "games_as_ally": row[2],
+                "wins_as_opponent": row[3],
+                "games_as_opponent": row[4],
+            }
+            for row in cursor.fetchall()
+        }
+
