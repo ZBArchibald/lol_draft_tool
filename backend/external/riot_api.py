@@ -57,7 +57,9 @@ def _wait_for_rate_limit() -> None:
                 wait_120s = _request_timestamps[0] + _REQUEST_WINDOW_120S - now
 
         wait_time = max(wait_1s, wait_120s, 0.01)
-        LOG.debug(
+        # long waits get INFO so quiet periods in the sync are explained
+        log = LOG.info if wait_time >= 5 else LOG.debug
+        log(
             "Rate limiter waiting %.3fs (1s=%s/20, 120s=%s/100)",
             wait_time,
             last_1s_count,

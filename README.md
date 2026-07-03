@@ -42,8 +42,6 @@ lol_draft_tool/
 |   |   |-- __init__.py
 |   |   `-- helpers.py
 |   `-- __init__.py
-|-- db/
-|   `-- lol_draft.sqlite3
 |-- pyproject.toml
 |-- README.md
 |-- requirements.txt
@@ -72,18 +70,16 @@ Then restart your terminal. Alternatively, invoke via module:
 python -m backend.cli.init_db
 ```
 
-Create a `.env` file with your Riot API key:
+Create a `.env` file with your Riot API key and Postgres connection string:
 
 ```text
 RIOT_API_KEY=your-api-key
+DATABASE_URL=postgresql://user:password@your-project.neon.tech/dbname?sslmode=require
 ```
 
-By default, the SQLite database is read from `db/lol_draft.sqlite3` relative to
-the current working directory. For hosted jobs, set an explicit database path:
-
-```text
-LOL_DRAFT_DB_PATH=/absolute/path/to/lol_draft.sqlite3
-```
+The database is hosted Postgres on [Neon](https://neon.tech) (free tier).
+Create a Neon project, copy its connection string into `DATABASE_URL`, then run
+`ldt-init-db` to create the schema.
 
 ## Commands
 
@@ -119,6 +115,5 @@ python -m backend.cli.daily_maintenance
 - `backend/` contains the application logic.
 - `backend/cli/` contains CLI entrypoints for database initialization
   and scheduled update tasks.
-- `db/lol_draft.sqlite3` is the local SQLite database file used by the project.
-- `LOL_DRAFT_DB_PATH` can override the database location for hosted jobs.
+- The database is Postgres hosted on Neon; `DATABASE_URL` in `.env` points at it.
 - `tests/` is available for future test coverage.

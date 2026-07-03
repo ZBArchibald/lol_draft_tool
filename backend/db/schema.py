@@ -1,6 +1,5 @@
 import logging
 
-from backend.core.config import DB_PATH
 from backend.db.connection import db_connection
 
 LOG = logging.getLogger(__name__)
@@ -17,7 +16,7 @@ SCHEMA_STATEMENTS = (
     """
     CREATE TABLE IF NOT EXISTS challenger_players (
         puuid TEXT PRIMARY KEY,
-        currently_challenger BOOLEAN DEFAULT 1,
+        currently_challenger BOOLEAN DEFAULT TRUE,
         last_processed_match_retrieval_time TIMESTAMP
     )
     """,
@@ -58,4 +57,4 @@ def initialize_database() -> None:
         cursor = conn.cursor()
         for statement in SCHEMA_STATEMENTS:
             cursor.execute(statement)
-    LOG.info("Database initialized at %s", DB_PATH)
+    LOG.info("Database schema initialized")
