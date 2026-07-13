@@ -120,6 +120,7 @@ def get_current_patch() -> str:
     if not isinstance(versions, list) or not versions:
         raise ValueError("Unexpected response format from Data Dragon API")
 
+    #truncate patch number
     major, minor, *_ = versions[0].split(".")
     return f"{major}.{minor}"
 

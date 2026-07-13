@@ -12,6 +12,7 @@ dependencies = [
     "requests",
     "psycopg[binary]",
     "psycopg_pool",
+    "fastapi[standard]",
 ]
 
 [project.scripts]
@@ -22,3 +23,6 @@ ldt-run-match-sync = "backend.cli.run_match_sync:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
+
+[tool.fastapi]
+entrypoint = "backend.main:app"

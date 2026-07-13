@@ -19,10 +19,10 @@ def recommend_champions(draft_state: DraftState) -> dict:
     for candidate_champion in candidate_champions:
         candidate_champion_winchances[candidate_champion] = _predict_win_chance(candidate_champion, draft_state)
 
-    recommendation_hierarchy = dict(
+    reccomendations = dict(
         sorted(candidate_champion_winchances.items(), key=lambda x: x[1], reverse=True)
     )
-    return recommendation_hierarchy
+    return reccomendations
 
 def _predict_win_chance(champion: str, draft_state: DraftState) -> float:
     drafted_champions = draft_state.allies + draft_state.enemies
