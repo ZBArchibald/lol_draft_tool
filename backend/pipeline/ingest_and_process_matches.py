@@ -10,7 +10,6 @@ from backend.db.queries import (
     upsert_champion_stats,
 )
 from backend.external.riot_api import get_match_data, get_match_ids
-from backend.utils.helpers import truncate_patch_id
 
 LOG = logging.getLogger(__name__)
 
@@ -77,7 +76,10 @@ def sync_player_matches(puuid: str, batch_size: int = 20) -> None:
 
 
 def is_on_current_patch(match_data: dict, current_patch: str) -> bool:
-    match_patch = truncate_patch_id(match_data["info"]["gameVersion"])
+    #retrive and build truncated patch from match_data
+    major, minor, *_ = match_data["info"]["gameVersion"].split(".")
+    match_patch = f"{major}.{minor}"
+
     return match_patch == current_patch
 
 

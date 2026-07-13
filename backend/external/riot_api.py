@@ -120,7 +120,8 @@ def get_current_patch() -> str:
     if not isinstance(versions, list) or not versions:
         raise ValueError("Unexpected response format from Data Dragon API")
 
-    return versions[0]
+    major, minor, *_ = versions[0].split(".")
+    return f"{major}.{minor}"
 
 
 def get_challenger_league_puuids() -> list[str]:

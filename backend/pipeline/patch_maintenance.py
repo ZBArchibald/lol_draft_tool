@@ -7,7 +7,6 @@ from backend.db.queries import (
     update_metadata,
 )
 from backend.external.riot_api import get_current_patch
-from backend.utils.helpers import truncate_patch_id
 
 LOG = logging.getLogger(__name__)
 
@@ -30,6 +29,6 @@ def archive_and_clear_on_patch_change() -> None:
 
 
 def update_current_patch() -> str:
-    current_patch = truncate_patch_id(get_current_patch())
+    current_patch = get_current_patch()
     update_metadata("current_patch", current_patch)
     return current_patch
