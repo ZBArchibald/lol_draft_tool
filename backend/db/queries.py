@@ -74,6 +74,10 @@ def clear_champion_relationships(conn: psycopg.Connection) -> None:
     conn.execute("DELETE FROM champion_relationships")
 
 
+def clear_champion_stats(conn: psycopg.Connection) -> None:
+    conn.execute("DELETE FROM champion_stats")
+
+
 def clear_challenger_players(conn: psycopg.Connection) -> None:
     conn.execute("DELETE FROM challenger_players")
 
@@ -81,6 +85,7 @@ def clear_challenger_players(conn: psycopg.Connection) -> None:
 def clear_all_match_data(conn: psycopg.Connection) -> None:
     clear_processed_matches(conn)
     clear_champion_relationships(conn)
+    clear_champion_stats(conn)
     clear_challenger_players(conn)
 
 
@@ -156,40 +161,49 @@ def get_candidate_champions(position: str, minimum_rolerate: float) -> list[str]
         return [row[0] for row in rows]
 
 
-def get_winrate(champion: str) -> float:
+def get_winrates(champions: list[str]) -> dict[str, float]:
+    """Returns champion -> winrate for every champion in `champions` that has games played.
+    Champions absent from the result (not found, or 0 games) should be treated as a 0.5 baseline by the caller."""
+    if not champions:
+        return {}
     with db_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT wins, games FROM champion_stats WHERE champion_name = %s",
-            (champion,)
+            "SELECT champion_name, wins, games FROM champion_stats WHERE champion_name = ANY(%s)",
+            (champions,),
         )
-        row = cursor.fetchone()
-        if not row or row[1] == 0:
-            return 0.5
-        return row[0] / row[1]
+        return {
+            row[0]: row[1] / row[2]
+            for row in cursor.fetchall()
+            if row[2] > 0
+        }
 
 
-def get_champion_relationships(champion: str, other_champions: list[str]) -> dict[str, dict]:
-    if not other_champions:
+def get_champion_relationships_bulk(
+    champions: list[str], other_champions: list[str]
+) -> dict[str, dict[str, dict]]:
+    """Returns champion -> other_champion -> relationship stats, for every (champion, other_champion)
+    pair in the cross product of `champions` and `other_champions` that has recorded games."""
+    if not champions or not other_champions:
         return {}
     with db_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(
             """
-            SELECT other_champion_name, wins_as_ally, games_as_ally, wins_as_opponent, games_as_opponent
+            SELECT champion_name, other_champion_name, wins_as_ally, games_as_ally, wins_as_opponent, games_as_opponent
             FROM champion_relationships
-            WHERE champion_name = %s
+            WHERE champion_name = ANY(%s)
             AND other_champion_name = ANY(%s)
             """,
-            (champion, other_champions),
+            (champions, other_champions),
         )
-        return {
-            row[0]: {
-                "wins_as_ally": row[1],
-                "games_as_ally": row[2],
-                "wins_as_opponent": row[3],
-                "games_as_opponent": row[4],
+        relationships: dict[str, dict[str, dict]] = {}
+        for row in cursor.fetchall():
+            relationships.setdefault(row[0], {})[row[1]] = {
+                "wins_as_ally": row[2],
+                "games_as_ally": row[3],
+                "wins_as_opponent": row[4],
+                "games_as_opponent": row[5],
             }
-            for row in cursor.fetchall()
-        }
+        return relationships
 
