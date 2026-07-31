@@ -10,7 +10,7 @@ class Position(Enum):
 
 
 class DraftState:
-    def __init__(self, position: Position, banned: list[str], allies: list[str], enemies: list[str]) -> None:
+    def __init__(self, position: Position, banned: list[int], allies: list[int], enemies: list[int]) -> None:
         self.position = position
         self.banned = banned
         self.allies = allies

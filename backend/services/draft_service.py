@@ -30,18 +30,18 @@ def recommend_champions(draft_state: DraftState) -> dict:
     return reccomendations
 
 def _predict_win_chance(
-    champion: str,
+    champ_id: int,
     draft_state: DraftState,
-    winrates: dict[str, float],
-    relationships: dict[str, dict[str, dict]],
+    winrates: dict[int, float],
+    relationships: dict[int, dict[int, dict]],
 ) -> float:
-    baseline_winrate = winrates.get(champion, 0.5)
+    baseline_winrate = winrates.get(champ_id, 0.5)
 
     drafted_champions = draft_state.allies + draft_state.enemies
     if not drafted_champions:
         return baseline_winrate
 
-    champion_relationships = relationships.get(champion, {})
+    champion_relationships = relationships.get(champ_id, {})
 
     relationship_win_rates = []
     for ally in draft_state.allies:

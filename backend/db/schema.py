@@ -16,7 +16,8 @@ SCHEMA_STATEMENTS = (
     """
     CREATE TABLE IF NOT EXISTS challenger_players (
         puuid TEXT PRIMARY KEY,
-        currently_challenger BOOLEAN DEFAULT TRUE
+        currently_challenger BOOLEAN DEFAULT TRUE,
+        last_synced_match_id TEXT
     )
     """,
     """
@@ -52,8 +53,8 @@ SCHEMA_STATEMENTS = (
     """,
     """
     CREATE TABLE IF NOT EXISTS champion_relationships (
-        champ_id TEXT,
-        other_champ_id TEXT,
+        champ_id INTEGER,
+        other_champ_id INTEGER,
         wins_as_ally INTEGER DEFAULT 0,
         games_as_ally INTEGER DEFAULT 0,
         wins_as_opponent INTEGER DEFAULT 0,
