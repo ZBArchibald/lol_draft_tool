@@ -16,18 +16,31 @@ SCHEMA_STATEMENTS = (
     """
     CREATE TABLE IF NOT EXISTS challenger_players (
         puuid TEXT PRIMARY KEY,
-        currently_challenger BOOLEAN DEFAULT TRUE,
-        last_processed_match_retrieval_time TIMESTAMP
+        currently_challenger BOOLEAN DEFAULT TRUE
     )
     """,
     """
-    CREATE TABLE IF NOT EXISTS processed_matches (
-        match_id TEXT PRIMARY KEY
+    CREATE TABLE IF NOT EXISTS matches (
+        match_id TEXT PRIMARY KEY,
+
+        blueside_win BOOLEAN,
+
+        blueside_top_champ_id INTEGER,
+        blueside_jungle_champ_id INTEGER,
+        blueside_middle_champ_id INTEGER,
+        blueside_bottom_champ_id INTEGER,
+        blueside_support_champ_id INTEGER,
+
+        redside_jungle_champ_id INTEGER,
+        redside_top_champ_id INTEGER,
+        redside_middle_champ_id INTEGER,
+        redside_bottom_champ_id INTEGER,
+        redside_support_champ_id INTEGER
     )
     """,
     """
     CREATE TABLE IF NOT EXISTS champion_stats (
-        champion_name TEXT PRIMARY KEY,
+        champ_id INTEGER PRIMARY KEY,
         wins INTEGER DEFAULT 0,
         games INTEGER DEFAULT 0,
         games_top INTEGER DEFAULT 0,
@@ -39,13 +52,13 @@ SCHEMA_STATEMENTS = (
     """,
     """
     CREATE TABLE IF NOT EXISTS champion_relationships (
-        champion_name TEXT,
-        other_champion_name TEXT,
+        champ_id TEXT,
+        other_champ_id TEXT,
         wins_as_ally INTEGER DEFAULT 0,
         games_as_ally INTEGER DEFAULT 0,
         wins_as_opponent INTEGER DEFAULT 0,
         games_as_opponent INTEGER DEFAULT 0,
-        PRIMARY KEY (champion_name, other_champion_name)
+        PRIMARY KEY (champ_id, other_champ_id)
     )
     """
     

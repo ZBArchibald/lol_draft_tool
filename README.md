@@ -11,14 +11,20 @@ lol_draft_tool/
 |-- .gitignore
 |-- backend/
 |   |-- __init__.py
+|   |-- api/
+|   |   |-- __init__.py
+|   |   |-- routes.py
+|   |   `-- schemas.py
 |   |-- cli/
+|   |   |-- __init__.py
 |   |   |-- daily_maintenance.py
 |   |   |-- init_db.py
 |   |   |-- run_match_sync.py
 |   |   `-- update_challengers.py
 |   |-- core/
 |   |   |-- __init__.py
-|   |   `-- config.py
+|   |   |-- config.py
+|   |   `-- logging_config.py
 |   |-- db/
 |   |   |-- __init__.py
 |   |   |-- connection.py
@@ -38,15 +44,12 @@ lol_draft_tool/
 |   |-- services/
 |   |   |-- __init__.py
 |   |   `-- draft_service.py
-|   |-- utils/
-|   |   |-- __init__.py
-|   |   `-- helpers.py
-|   `-- __init__.py
+|   `-- main.py
+|-- client/          # reserved for future frontend, currently empty
 |-- pyproject.toml
 |-- README.md
-|-- requirements.txt
-|-- todo
-`-- tests/
+|-- TODO.md
+`-- tests/           # reserved for future test coverage, currently empty
 ```
 
 ## Setup
@@ -115,5 +118,8 @@ python -m backend.cli.daily_maintenance
 - `backend/` contains the application logic.
 - `backend/cli/` contains CLI entrypoints for database initialization
   and scheduled update tasks.
+- `backend/api/` exposes `draft_service.recommend_champions()` over HTTP via
+  FastAPI (`backend/main.py` is the app entrypoint; run with `fastapi dev backend/main.py`
+  or `uvicorn backend.main:app`).
 - The database is Postgres hosted on Neon; `DATABASE_URL` in `.env` points at it.
 - `tests/` is available for future test coverage.

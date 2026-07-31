@@ -219,6 +219,8 @@ todo
 interviewer_notes.txt
 *.egg-info/
 
+.vscode
+
 
 #claude code
 CLAUDE.md
