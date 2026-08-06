@@ -2,7 +2,7 @@ import logging
 
 from backend.db.connection import db_connection
 from backend.db.queries import (
-    clear_all_match_data,
+    clear_db,
     get_metadata_value,
     update_metadata,
 )
@@ -23,7 +23,7 @@ def archive_and_clear_on_patch_change() -> None:
     if previous_patch and previous_patch != current_patch:
         LOG.info("Patch changed from %s to %s — clearing old match data", previous_patch, current_patch)
         with db_connection() as conn:
-            clear_all_match_data(conn)
+            clear_db(conn)
     else:
         LOG.info("No patch change detected")
 

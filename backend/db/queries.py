@@ -127,7 +127,7 @@ def insert_matches(conn: psycopg.Connection, rows: list[dict]) -> None:
     )
 
 
-def clear_all_match_data(conn: psycopg.Connection) -> None:
+def clear_db(conn: psycopg.Connection) -> None:
     clear_matches(conn)
     clear_champion_relationships(conn)
     clear_champion_stats(conn)

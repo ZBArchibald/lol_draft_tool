@@ -13,7 +13,7 @@ concurrency:
 jobs:
   maintenance:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 45
     env:
       RIOT_API_KEY: ${{ secrets.RIOT_API_KEY }}
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
