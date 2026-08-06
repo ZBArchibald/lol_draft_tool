@@ -1,0 +1,31 @@
+name: Match Sync
+
+on:
+  schedule:
+    # 04:00 and 16:00 UTC: 12 hours apart, clear of the daily-maintenance run at 10:10 UTC
+    - cron: "0 4,16 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: ldt-db
+  cancel-in-progress: false
+
+jobs:
+  match-sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    env:
+      RIOT_API_KEY: ${{ secrets.RIOT_API_KEY }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --locked
+
+      - name: Run match sync
+        run: uv run ldt-run-match-sync
