@@ -5,13 +5,13 @@ from backend.domain.draft_state import Position
 
 class DraftStateRequest(BaseModel):
     position: Position
-    banned: list[str] = Field(default_factory=list)
-    allies: list[str] = Field(default_factory=list)
-    enemies: list[str] = Field(default_factory=list)
+    banned: list[int] = Field(default_factory=list)
+    allies: list[int] = Field(default_factory=list)
+    enemies: list[int] = Field(default_factory=list)
 
 
 class ChampionRecommendation(BaseModel):
-    champion: str
+    champion: int
     win_chance: float
 
 

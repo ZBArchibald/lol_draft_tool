@@ -5,8 +5,9 @@ from backend.db.queries import (
     clear_player_data,
     get_metadata_value,
     update_metadata,
+    upsert_champions,
 )
-from backend.external.riot_api import get_current_patch
+from backend.external.riot_api import get_champion_list, get_current_patch
 
 LOG = logging.getLogger(__name__)
 
@@ -27,8 +28,17 @@ def archive_and_clear_on_patch_change() -> None:
     else:
         LOG.info("No patch change detected")
 
+    sync_champion_list()
+
 
 def update_current_patch() -> str:
     current_patch = get_current_patch()
     update_metadata("current_patch", current_patch)
     return current_patch
+
+
+def sync_champion_list() -> None:
+    champions = get_champion_list()
+    with db_connection() as conn:
+        upsert_champions(conn, champions)
+    LOG.info("Synced %d champions", len(champions))

@@ -14,6 +14,12 @@ SCHEMA_STATEMENTS = (
     )
     """,
     """
+    CREATE TABLE IF NOT EXISTS champions (
+        champ_id INTEGER PRIMARY KEY,
+        name TEXT NOT NULL
+    )
+    """,
+    """
     CREATE TABLE IF NOT EXISTS challenger_players (
         puuid TEXT PRIMARY KEY,
         currently_challenger BOOLEAN DEFAULT TRUE,
