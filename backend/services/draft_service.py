@@ -1,9 +1,14 @@
+from backend.db.queries import (
+    get_candidate_champions,
+    get_champion_relationships_bulk,
+    get_winrates,
+)
 from backend.domain.draft_state import DraftState
-from backend.db.queries import get_candidate_champions, get_champion_relationships_bulk, get_winrates
+
 
 def recommend_champions(draft_state: DraftState) -> dict:
     # find all candidate champions to suggest to user
-        # champions with at least 5% pickrate in role will be considered.
+        # champions with at least 20% pickrate in role will be considered.
 
     excluded = set(draft_state.banned + draft_state.allies + draft_state.enemies)
     candidate_champions = [
@@ -20,7 +25,7 @@ def recommend_champions(draft_state: DraftState) -> dict:
     relationships = get_champion_relationships_bulk(candidate_champions, drafted_champions)
 
     candidate_champion_winchances = {
-        candidate_champion: _predict_win_chance(candidate_champion, draft_state, winrates, relationships)
+        candidate_champion: _predict_win_chance_naive(candidate_champion, draft_state, winrates, relationships)
         for candidate_champion in candidate_champions
     }
 
@@ -29,7 +34,7 @@ def recommend_champions(draft_state: DraftState) -> dict:
     )
     return reccomendations
 
-def _predict_win_chance(
+def _predict_win_chance_naive(
     champ_id: int,
     draft_state: DraftState,
     winrates: dict[int, float],
