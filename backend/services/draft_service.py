@@ -16,10 +16,6 @@ def recommend_champions(draft_state: DraftState) -> dict:
         if c not in excluded
     ]
 
-    # for each considerable champion, average their relationship winrate against each of the other champions that have been drafted in draft_state
-        # place these all in a dictionary key=champ value=wrscore
-            #sort by wr score and return to user
-
     drafted_champions = draft_state.allies + draft_state.enemies
     winrates = get_winrates(candidate_champions)
     relationships = get_champion_relationships_bulk(candidate_champions, drafted_champions)
