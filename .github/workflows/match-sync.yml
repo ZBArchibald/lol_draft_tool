@@ -2,8 +2,9 @@ name: Match Sync
 
 on:
   schedule:
-    # 04:00 and 16:00 UTC: 12 hours apart, clear of the daily-maintenance run at 10:10 UTC
-    - cron: "0 4,16 * * *"
+    # 10:15 and 22:15 UTC: 5 minutes after daily-maintenance's 10:10 UTC trigger
+    # (it finishes in ~20s), then every 12h from there
+    - cron: "15 10,22 * * *"
   workflow_dispatch:
 
 concurrency:
