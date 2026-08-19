@@ -28,7 +28,7 @@ jobs:
         run: uv sync --locked
 
       - name: Run daily maintenance
-        run: uv run ldt-daily-maintenance
+        run: uv run ldt daily-maintenance
 
       - name: Update challenger ladder
-        run: uv run ldt-update-challengers
+        run: uv run ldt update-challengers

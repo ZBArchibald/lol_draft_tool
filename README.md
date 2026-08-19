@@ -15,12 +15,7 @@ lol_draft_tool/
 |   |   |-- __init__.py
 |   |   |-- routes.py
 |   |   `-- schemas.py
-|   |-- cli/
-|   |   |-- __init__.py
-|   |   |-- daily_maintenance.py
-|   |   |-- init_db.py
-|   |   |-- run_match_sync.py
-|   |   `-- update_challengers.py
+|   |-- cli.py
 |   |-- core/
 |   |   |-- __init__.py
 |   |   |-- config.py
@@ -56,10 +51,10 @@ lol_draft_tool/
 
 ```powershell
 python -m pip install -e .
-ldt-init-db
+ldt init-db
 ```
 
-On Windows, if `ldt-init-db` is not recognized after installation, your Python
+On Windows, if `ldt` is not recognized after installation, your Python
 Scripts directory is not on `PATH`. Add it permanently with:
 
 ```powershell
@@ -70,7 +65,7 @@ $scripts = python -c "import sysconfig; print(sysconfig.get_path('scripts'))"
 Then restart your terminal. Alternatively, invoke via module:
 
 ```powershell
-python -m backend.cli.init_db
+python -m backend.cli init-db
 ```
 
 Create a `.env` file with your Riot API key and Postgres connection string:
@@ -82,15 +77,15 @@ DATABASE_URL=postgresql://user:password@your-project.neon.tech/dbname?sslmode=re
 
 The database is hosted Postgres on [Neon](https://neon.tech) (free tier).
 Create a Neon project, copy its connection string into `DATABASE_URL`, then run
-`ldt-init-db` to create the schema.
+`ldt init-db` to create the schema.
 
 ## Commands
 
 ```powershell
-ldt-init-db
-ldt-update-challengers
-ldt-run-match-sync
-ldt-daily-maintenance
+ldt init-db
+ldt update-challengers
+ldt run-match-sync
+ldt daily-maintenance
 ```
 
 ## Development
@@ -103,21 +98,22 @@ python -m pip install --upgrade pip
 python -m pip install -e .
 ```
 
-Use the installed CLI commands (see `pyproject.toml` `project.scripts`) or run
-these package modules directly:
+Use the installed `ldt` command (see `pyproject.toml` `project.scripts`) or run
+the module directly with a subcommand:
 
 ```powershell
-python -m backend.cli.init_db
-python -m backend.cli.update_challengers
-python -m backend.cli.run_match_sync
-python -m backend.cli.daily_maintenance
+python -m backend.cli init-db
+python -m backend.cli update-challengers
+python -m backend.cli run-match-sync
+python -m backend.cli daily-maintenance
 ```
 
 ## Notes
 
 - `backend/` contains the application logic.
-- `backend/cli/` contains CLI entrypoints for database initialization
-  and scheduled update tasks.
+- `backend/cli.py` is the single `ldt` console-script entry point; it dispatches to
+  `init-db`, `update-challengers`, `run-match-sync`, and `daily-maintenance`
+  subcommands.
 - `backend/api/` exposes `draft_service.recommend_champions()` over HTTP via
   FastAPI (`backend/main.py` is the app entrypoint; run with `fastapi dev backend/main.py`
   or `uvicorn backend.main:app`).

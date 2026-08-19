@@ -11,6 +11,8 @@ from backend.external.riot_api import get_champion_list, get_current_patch
 
 LOG = logging.getLogger(__name__)
 
+def run_daily_maintenance() -> None:
+    archive_and_clear_on_patch_change()
 
 def archive_and_clear_on_patch_change() -> None:
     try:

@@ -16,10 +16,7 @@ dependencies = [
 ]
 
 [project.scripts]
-ldt-init-db = "backend.cli.init_db:main"
-ldt-daily-maintenance = "backend.cli.daily_maintenance:main"
-ldt-update-challengers = "backend.cli.update_challengers:main"
-ldt-run-match-sync = "backend.cli.run_match_sync:main"
+ldt = "backend.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
