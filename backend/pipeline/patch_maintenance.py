@@ -13,6 +13,7 @@ LOG = logging.getLogger(__name__)
 
 def run_daily_maintenance() -> None:
     archive_and_clear_on_patch_change()
+    sync_champion_list()
 
 def archive_and_clear_on_patch_change() -> None:
     try:
@@ -29,8 +30,6 @@ def archive_and_clear_on_patch_change() -> None:
             clear_player_data(conn)
     else:
         LOG.info("No patch change detected")
-
-    sync_champion_list()
 
 
 def update_current_patch() -> str:
