@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "lol-draft-tool"
 version = "0.1.0"
-description = "League of Legends draft data tooling"
+description = "League of Legends draft phase champion sugestion tool"
 requires-python = ">=3.11"
 dependencies = [
     "python-dotenv",

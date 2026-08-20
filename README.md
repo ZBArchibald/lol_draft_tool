@@ -118,4 +118,3 @@ python -m backend.cli daily-maintenance
   FastAPI (`backend/main.py` is the app entrypoint; run with `fastapi dev backend/main.py`
   or `uvicorn backend.main:app`).
 - The database is Postgres hosted on Neon; `DATABASE_URL` in `.env` points at it.
-- `tests/` is available for future test coverage.
