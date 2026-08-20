@@ -9,15 +9,15 @@ from backend.services.draft_service import recommend_champions
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/draft", tags=["draft"])
+recommendation_router = APIRouter(prefix="/api/recommend", tags=["recommendation"])
 
+champions_router = APIRouter(prefix="/api/champions", tags=["champions"])
 
-@router.get("/champions")
-async def list_champions() -> dict[int, str]:
+@champions_router.get("")
+async def serve_champion_resources() -> dict[int, str]:
     return get_all_champions()
 
-
-@router.post("/recommend", response_model=RecommendationResponse)
+@recommendation_router.post("", response_model=RecommendationResponse)
 async def recommend(draft_state_request: DraftStateRequest) -> RecommendationResponse:
     draft_state = DraftState(
         position=draft_state_request.position,

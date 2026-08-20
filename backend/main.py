@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.api.routes import router as draft_router
+from backend.api.routes import champions_router, recommendation_router
 
 app = FastAPI(title="LoL Draft Tool API")
 
@@ -19,9 +19,5 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(draft_router)
-
-
-@app.get("/")
-async def root():
-    return {"message": "Hello World"}
+app.include_router(champions_router)
+app.include_router(recommendation_router)
