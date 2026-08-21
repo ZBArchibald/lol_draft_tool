@@ -7,7 +7,7 @@ from backend.db.queries import (
     update_metadata,
     upsert_champions,
 )
-from backend.external.riot_api import get_champion_list, get_current_patch
+from backend.external.riot_api import champion_table_from_ddragon, get_current_patch
 
 LOG = logging.getLogger(__name__)
 
@@ -39,7 +39,7 @@ def update_current_patch() -> str:
 
 
 def sync_champion_list() -> None:
-    champions = get_champion_list()
+    champions = champion_table_from_ddragon()
     with db_connection() as conn:
         upsert_champions(conn, champions)
     LOG.info("Synced %d champions", len(champions))

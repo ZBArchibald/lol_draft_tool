@@ -132,7 +132,7 @@ def get_current_patch() -> str:
     return f"{major}.{minor}"
 
 
-def get_champion_list() -> list[tuple[int, str, str]]:
+def champion_table_from_ddragon() -> list[tuple[int, str, str]]:
     """Returns (champ_id, name, sprite_url) for every champion in the current Data Dragon
     version. Uses the full version string (e.g. "14.1.1"), not the truncated major.minor
     patch that get_current_patch() returns for match-patch comparisons — Data Dragon's CDN

@@ -43,7 +43,7 @@ def upsert_champions(conn: psycopg.Connection, rows: list[tuple[int, str, str]])
     )
 
 
-def get_all_champions() -> dict[int, tuple[str, str]]:
+def champion_dictionary_from_db() -> dict[int, tuple[str, str]]:
     """Returns champ_id -> (name, sprite_url)."""
     with db_connection() as conn:
         cursor = conn.cursor()

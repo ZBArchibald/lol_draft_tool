@@ -8,7 +8,7 @@ from backend.api.schemas import (
     DraftStateRequest,
     RecommendationResponse,
 )
-from backend.db.queries import get_all_champions
+from backend.db.queries import champion_dictionary_from_db
 from backend.domain.draft_state import DraftState
 from backend.services.draft_service import recommend_champions
 
@@ -22,7 +22,7 @@ champions_router = APIRouter(prefix="/api/champions", tags=["champions"])
 async def serve_champion_resources() -> dict[int, ChampionInfo]:
     return {
         champ_id: ChampionInfo(name=name, sprite_url=sprite_url)
-        for champ_id, (name, sprite_url) in get_all_champions().items()
+        for champ_id, (name, sprite_url) in champion_dictionary_from_db().items()
     }
 
 @recommendation_router.post("", response_model=RecommendationResponse)
