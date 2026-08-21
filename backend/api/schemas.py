@@ -10,6 +10,11 @@ class DraftStateRequest(BaseModel):
     enemies: list[int] = Field(default_factory=list)
 
 
+class ChampionInfo(BaseModel):
+    name: str
+    sprite_url: str
+
+
 class ChampionRecommendation(BaseModel):
     champion: int
     win_chance: float

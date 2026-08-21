@@ -27,25 +27,28 @@ def update_metadata(key: str, value: str) -> None:
         )
 
 
-def upsert_champions(conn: psycopg.Connection, rows: list[tuple[int, str]]) -> None:
-    """rows: (champ_id, name)"""
+def upsert_champions(conn: psycopg.Connection, rows: list[tuple[int, str, str]]) -> None:
+    """rows: (champ_id, name, sprite_url)"""
     if not rows:
         return
     conn.cursor().executemany(
         """
-        INSERT INTO champions (champ_id, name)
-        VALUES (%s, %s)
-        ON CONFLICT (champ_id) DO UPDATE SET name = excluded.name
+        INSERT INTO champions (champ_id, name, sprite_url)
+        VALUES (%s, %s, %s)
+        ON CONFLICT (champ_id) DO UPDATE SET
+            name = excluded.name,
+            sprite_url = excluded.sprite_url
         """,
         rows,
     )
 
 
-def get_all_champions() -> dict[int, str]:
+def get_all_champions() -> dict[int, tuple[str, str]]:
+    """Returns champ_id -> (name, sprite_url)."""
     with db_connection() as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT champ_id, name FROM champions")
-        return {row[0]: row[1] for row in cursor.fetchall()}
+        cursor.execute("SELECT champ_id, name, sprite_url FROM champions")
+        return {row[0]: (row[1], row[2]) for row in cursor.fetchall()}
 
 
 def get_challenger_puuids() -> list[str]:

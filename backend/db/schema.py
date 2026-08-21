@@ -16,7 +16,8 @@ SCHEMA_STATEMENTS = (
     """
     CREATE TABLE IF NOT EXISTS champions (
         champ_id INTEGER PRIMARY KEY,
-        name TEXT NOT NULL
+        name TEXT NOT NULL,
+        sprite_url TEXT
     )
     """,
     """

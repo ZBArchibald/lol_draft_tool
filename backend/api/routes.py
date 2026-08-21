@@ -2,7 +2,12 @@ import logging
 
 from fastapi import APIRouter, HTTPException
 
-from backend.api.schemas import ChampionRecommendation, DraftStateRequest, RecommendationResponse
+from backend.api.schemas import (
+    ChampionInfo,
+    ChampionRecommendation,
+    DraftStateRequest,
+    RecommendationResponse,
+)
 from backend.db.queries import get_all_champions
 from backend.domain.draft_state import DraftState
 from backend.services.draft_service import recommend_champions
@@ -14,8 +19,11 @@ recommendation_router = APIRouter(prefix="/api/recommend", tags=["recommendation
 champions_router = APIRouter(prefix="/api/champions", tags=["champions"])
 
 @champions_router.get("")
-async def serve_champion_resources() -> dict[int, str]:
-    return get_all_champions()
+async def serve_champion_resources() -> dict[int, ChampionInfo]:
+    return {
+        champ_id: ChampionInfo(name=name, sprite_url=sprite_url)
+        for champ_id, (name, sprite_url) in get_all_champions().items()
+    }
 
 @recommendation_router.post("", response_model=RecommendationResponse)
 async def recommend(draft_state_request: DraftStateRequest) -> RecommendationResponse:

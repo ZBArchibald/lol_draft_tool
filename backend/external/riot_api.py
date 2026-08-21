@@ -10,6 +10,7 @@ LOG = logging.getLogger(__name__)
 
 DATA_DRAGON_VERSIONS_URL = "https://ddragon.leagueoflegends.com/api/versions.json"
 DATA_DRAGON_CHAMPIONS_URL = "https://ddragon.leagueoflegends.com/cdn/{version}/data/en_US/champion.json"
+DATA_DRAGON_SPRITE_URL = "https://ddragon.leagueoflegends.com/cdn/{version}/img/champion/{full}"
 
 # Data Dragon's champion.json also includes non-Summoner's-Rift variants (e.g. League
 # Classic), which are namespaced into champ_id >= 60000. Only standard SR champions,
@@ -131,24 +132,34 @@ def get_current_patch() -> str:
     return f"{major}.{minor}"
 
 
-def get_champion_list() -> list[tuple[int, str]]:
-    """Returns (champ_id, name) for every champion in the current Data Dragon version.
-    Uses the full version string (e.g. "14.1.1"), not the truncated major.minor patch
-    that get_current_patch() returns for match-patch comparisons — Data Dragon's CDN
-    requires the full version in its URL."""
+def get_champion_list() -> list[tuple[int, str, str]]:
+    """Returns (champ_id, name, sprite_url) for every champion in the current Data Dragon
+    version. Uses the full version string (e.g. "14.1.1"), not the truncated major.minor
+    patch that get_current_patch() returns for match-patch comparisons — Data Dragon's CDN
+    requires the full version in its URL.
+
+    sprite_url points at each champion's single per-champion icon file
+    (entry["image"]["full"]), not one of Data Dragon's packed multi-champion sprite
+    sheets — the single-file URL can go straight into an <img src> with no client-side
+    cropping logic needed."""
     response = requests.get(DATA_DRAGON_VERSIONS_URL, timeout=10)
     response.raise_for_status()
 
     versions = response.json()
     if not isinstance(versions, list) or not versions:
         raise ValueError("Unexpected response format from Data Dragon API")
+    version = versions[0]
 
-    response = requests.get(DATA_DRAGON_CHAMPIONS_URL.format(version=versions[0]), timeout=10)
+    response = requests.get(DATA_DRAGON_CHAMPIONS_URL.format(version=version), timeout=10)
     response.raise_for_status()
 
     champion_data = response.json()["data"]
     return [
-        (champ_id, entry["name"])
+        (
+            champ_id,
+            entry["name"],
+            DATA_DRAGON_SPRITE_URL.format(version=version, full=entry["image"]["full"]),
+        )
         for entry in champion_data.values()
         if (champ_id := int(entry["key"])) < _NON_SUMMONERS_RIFT_ID_FLOOR
     ]
