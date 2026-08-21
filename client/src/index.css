@@ -1,0 +1,53 @@
+:root {
+  /* Dark theme loosely based on the LoL client palette */
+  --bg: #010a13;
+  --panel: #0a1428;
+  --panel-light: #0f1f38;
+  --border: #1e2328;
+  --gold: #c8aa6e;
+  --gold-bright: #f0e6d2;
+  --blue-team: #0ac8b9;
+  --red-team: #e84057;
+  --text: #a09b8c;
+  --error: #e84057;
+
+  color-scheme: dark;
+  font-family: 'Segoe UI', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.4;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+}
+
+h1,
+h2 {
+  color: var(--gold-bright);
+  font-weight: 600;
+  margin: 0;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  border-color: var(--gold);
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
