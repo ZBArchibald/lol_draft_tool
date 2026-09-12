@@ -39,6 +39,7 @@ jobs:
             --project lol-draft-tool-508418 \
             --region us-central1 \
             --allow-unauthenticated \
-            --max-instances 3 \
+            --max-instances 1 \
+            --timeout 30 \
             --set-secrets "DATABASE_URL=database-url:latest" \
             --quiet
