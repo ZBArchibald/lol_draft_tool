@@ -1,7 +1,12 @@
-// Transport layer for the FastAPI backend. Paths are relative; the Vite dev
-// server proxies /api to http://localhost:8000 (see vite.config.ts).
+// Transport layer for the FastAPI backend. In dev, VITE_API_BASE_URL is unset,
+// so requests use relative /api paths and the Vite dev server proxies them to
+// http://localhost:8000 (see vite.config.ts). In the deployed build it's set to
+// the Cloud Run URL, making the calls absolute + cross-origin (the API's CORS
+// allowlist must then include this frontend's origin).
 
 import type { ChampionDict, DraftStateRequest, RecommendationResponse } from './types'
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? ''
 
 export class ApiError extends Error {
   status: number
@@ -25,7 +30,7 @@ async function throwApiError(res: Response): Promise<never> {
 }
 
 export async function fetchChampions(): Promise<ChampionDict> {
-  const res = await fetch('/api/champions')
+  const res = await fetch(`${API_BASE}/api/champions`)
   if (!res.ok) await throwApiError(res)
   return res.json()
 }
@@ -34,7 +39,7 @@ export async function fetchRecommendations(
   req: DraftStateRequest,
   signal: AbortSignal,
 ): Promise<RecommendationResponse> {
-  const res = await fetch('/api/recommend', {
+  const res = await fetch(`${API_BASE}/api/recommend`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(req),
