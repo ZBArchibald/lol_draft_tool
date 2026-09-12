@@ -1,0 +1,17 @@
+# Keep the build context (and image) small and free of secrets.
+.git
+.github
+.venv
+venv
+__pycache__
+*.pyc
+.env
+.env.*
+client
+node_modules
+uv.lock
+.claude
+*.md
+Dockerfile
+.dockerignore
+.gcloudignore
