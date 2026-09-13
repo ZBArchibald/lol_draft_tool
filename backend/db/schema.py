@@ -47,15 +47,12 @@ SCHEMA_STATEMENTS = (
     )
     """,
     """
-    CREATE TABLE IF NOT EXISTS champion_stats (
-        champ_id INTEGER PRIMARY KEY,
+    CREATE TABLE IF NOT EXISTS champion_role_stats (
+        champ_id INTEGER,
+        role TEXT,
         wins INTEGER DEFAULT 0,
         games INTEGER DEFAULT 0,
-        games_top INTEGER DEFAULT 0,
-        games_jungle INTEGER DEFAULT 0,
-        games_mid INTEGER DEFAULT 0,
-        games_bot INTEGER DEFAULT 0,
-        games_support INTEGER DEFAULT 0
+        PRIMARY KEY (champ_id, role)
     )
     """,
     """

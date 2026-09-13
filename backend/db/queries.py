@@ -117,7 +117,7 @@ def clear_champion_relationships(conn: psycopg.Connection) -> None:
 
 
 def clear_champion_stats(conn: psycopg.Connection) -> None:
-    conn.execute("DELETE FROM champion_stats")
+    conn.execute("DELETE FROM champion_role_stats")
 
 
 def clear_challenger_players(conn: psycopg.Connection) -> None:
@@ -189,57 +189,57 @@ def upsert_champion_relationships(
 
 def upsert_champion_stats(
     conn: psycopg.Connection,
-    rows: list[tuple[int, int, int, int, int, int, int, int]],
+    rows: list[tuple[int, str, int, int]],
 ) -> None:
-    """rows: (champ_id, wins, games, games_top, games_jungle, games_mid, games_bot, games_support)"""
+    """rows: (champ_id, role, wins, games) — role is a raw Riot teamPosition token"""
     if not rows:
         return
     conn.cursor().executemany(
         """
-        INSERT INTO champion_stats (
-            champ_id, wins, games,
-            games_top, games_jungle, games_mid, games_bot, games_support
-        )
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-        ON CONFLICT(champ_id)
+        INSERT INTO champion_role_stats (champ_id, role, wins, games)
+        VALUES (%s, %s, %s, %s)
+        ON CONFLICT(champ_id, role)
         DO UPDATE SET
-            wins = champion_stats.wins + excluded.wins,
-            games = champion_stats.games + excluded.games,
-            games_top = champion_stats.games_top + excluded.games_top,
-            games_jungle = champion_stats.games_jungle + excluded.games_jungle,
-            games_mid = champion_stats.games_mid + excluded.games_mid,
-            games_bot = champion_stats.games_bot + excluded.games_bot,
-            games_support = champion_stats.games_support + excluded.games_support
+            wins = champion_role_stats.wins + excluded.wins,
+            games = champion_role_stats.games + excluded.games
         """,
         rows,
     )
 
 # draft_service queries
 
-def get_candidate_champions(position: str, minimum_rolerate: float) -> list[int]:
+def get_candidate_champions(role: str, minimum_rolerate: float) -> list[int]:
+    """Champions whose share of games played in `role` (games in role / that champion's
+    total games across all roles) meets `minimum_rolerate`. `role` is a raw Riot token."""
     with db_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(
-            f"""
-            SELECT champ_id FROM champion_stats
-            WHERE (games_{position} + 0.0) / games >= %s
+            """
+            SELECT champ_id FROM champion_role_stats
+            WHERE role = %s
+            AND games::float / (
+                SELECT SUM(games) FROM champion_role_stats other
+                WHERE other.champ_id = champion_role_stats.champ_id
+            ) >= %s
             """,
-            (minimum_rolerate,),
+            (role, minimum_rolerate),
         )
         rows = cursor.fetchall()
         return [row[0] for row in rows]
 
 
-def get_winrates(champions: list[int]) -> dict[int, float]:
-    """Returns champ_id -> winrate for every champion in `champions` that has games played.
-    Champions absent from the result (not found, or 0 games) should be treated as a 0.5 baseline by the caller."""
+def get_winrates(champions: list[int], role: str) -> dict[int, float]:
+    """Returns champ_id -> winrate in `role` for every champion in `champions` that has
+    games played in that role. `role` is a raw Riot token. Champions absent from the
+    result (not found, or 0 games in role) should be treated as a 0.5 baseline by the caller."""
     if not champions:
         return {}
     with db_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT champ_id, wins, games FROM champion_stats WHERE champ_id = ANY(%s)",
-            (champions,),
+            "SELECT champ_id, wins, games FROM champion_role_stats "
+            "WHERE role = %s AND champ_id = ANY(%s)",
+            (role, champions),
         )
         return {
             row[0]: row[1] / row[2]

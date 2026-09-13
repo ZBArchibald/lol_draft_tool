@@ -15,14 +15,8 @@ from backend.external.riot_api import get_match_data, get_match_ids
 
 LOG = logging.getLogger(__name__)
 
-# teamPosition -> the champion_stats column that tracks games played there
-_POSITION_FIELD = {
-    "TOP": "games_top",
-    "JUNGLE": "games_jungle",
-    "MIDDLE": "games_mid",
-    "BOTTOM": "games_bot",
-    "UTILITY": "games_support",
-}
+# raw Riot teamPosition tokens we aggregate stats for; stored as-is in champion_role_stats.role
+_VALID_ROLES = {"TOP", "JUNGLE", "MIDDLE", "BOTTOM", "UTILITY"}
 
 # teamPosition -> the matches column suffix for that role
 _TEAM_POSITION_SUFFIX = {
@@ -47,16 +41,6 @@ _EMPTY_MATCH_ROW = {
     "redside_middle_champ_id": None,
     "redside_bottom_champ_id": None,
     "redside_support_champ_id": None,
-}
-
-_EMPTY_STATS_ROW = {
-    "wins": 0,
-    "games": 0,
-    "games_top": 0,
-    "games_jungle": 0,
-    "games_mid": 0,
-    "games_bot": 0,
-    "games_support": 0,
 }
 
 _EMPTY_RELATIONSHIP_ROW = {
@@ -143,21 +127,22 @@ def is_on_current_patch(match_data: dict, current_patch: str) -> bool:
 
 def aggregate_match(
     match_data: dict,
-    stats: dict[int, dict[str, int]],
+    stats: dict[tuple[int, str], dict[str, int]],
     relationships: dict[tuple[int, int], dict[str, int]],
 ) -> None:
     # excludes remakes and other games where teamPosition wasn't assigned, so
     # they're skipped consistently by both champion_stats and champion_relationships
     participants = [
         p for p in match_data["info"]["participants"]
-        if p["teamPosition"] in _POSITION_FIELD
+        if p["teamPosition"] in _VALID_ROLES
     ]
 
     for participant in participants:
-        row = stats.setdefault(participant["championId"], dict(_EMPTY_STATS_ROW))
-        row["wins"] += int(participant["win"])
-        row["games"] += 1
-        row[_POSITION_FIELD[participant["teamPosition"]]] += 1
+        key = (participant["championId"], participant["teamPosition"])
+        if key not in stats:
+            stats[key] = {"wins": 0, "games": 0}
+        stats[key]["wins"] += int(participant["win"])
+        stats[key]["games"] += 1
 
     for participant_a in participants:
         for participant_b in participants:
@@ -193,7 +178,7 @@ def flush_player_data(
     newest_match_id: str | None,
     match_ids: list[str],
     match_rows: list[dict],
-    stats: dict[int, dict[str, int]],
+    stats: dict[tuple[int, str], dict[str, int]],
     relationships: dict[tuple[int, int], dict[str, int]],
 ) -> None:
     if newest_match_id is None:
@@ -204,17 +189,8 @@ def flush_player_data(
             upsert_champion_stats(
                 conn,
                 [
-                    (
-                        champ_id,
-                        row["wins"],
-                        row["games"],
-                        row["games_top"],
-                        row["games_jungle"],
-                        row["games_mid"],
-                        row["games_bot"],
-                        row["games_support"],
-                    )
-                    for champ_id, row in stats.items()
+                    (champ_id, role, row["wins"], row["games"])
+                    for (champ_id, role), row in stats.items()
                 ],
             )
             upsert_champion_relationships(

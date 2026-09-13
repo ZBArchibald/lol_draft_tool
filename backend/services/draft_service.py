@@ -3,21 +3,32 @@ from backend.db.queries import (
     get_champion_relationships_bulk,
     get_winrates,
 )
-from backend.domain.draft_state import DraftState
+from backend.domain.draft_state import DraftState, Position
+
+# Position (API contract) -> raw Riot teamPosition token stored in champion_role_stats.role
+_POSITION_TO_ROLE = {
+    Position.TOP: "TOP",
+    Position.JUNGLE: "JUNGLE",
+    Position.MID: "MIDDLE",
+    Position.BOT: "BOTTOM",
+    Position.SUPPORT: "UTILITY",
+}
 
 
 def recommend_champions(draft_state: DraftState) -> dict:
     # find all candidate champions to suggest to user
         # champions with at least 20% pickrate in role will be considered.
 
+    role = _POSITION_TO_ROLE[draft_state.position]
+
     excluded = set(draft_state.banned + draft_state.allies + draft_state.enemies)
     candidate_champions = [
-        c for c in get_candidate_champions(draft_state.position.value, minimum_rolerate=.2)
+        c for c in get_candidate_champions(role, minimum_rolerate=.2)
         if c not in excluded
     ]
 
     drafted_champions = draft_state.allies + draft_state.enemies
-    winrates = get_winrates(candidate_champions)
+    winrates = get_winrates(candidate_champions, role)
     relationships = get_champion_relationships_bulk(candidate_champions, drafted_champions)
 
     candidate_champion_winchances = {
