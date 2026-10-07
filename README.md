@@ -5,16 +5,35 @@ data via the Riot Games API, builds champion synergy/counter statistics in
 Postgres (hosted on Neon), and serves draft recommendations over a FastAPI
 backend with a React web client.
 
+## Architecture
+
+### System overview
+
+Where each piece runs (Cloudflare Pages, Cloud Run, GitHub Actions, Neon) and
+what talks to what.
+
+![System overview](docs/images/system-overview.png)
+
+### Backend module map
+
+How `backend/` is layered: the request path served on Cloud Run (left) and the
+batch ingestion pipeline run by GitHub Actions (right).
+
+![Backend module map](docs/images/backend-modules.png)
+
 ## Project Structure
 
 ```text
 lol_draft_tool/
 |-- .env.example
 |-- .gitignore
+|-- .dockerignore                    # keeps client/, .env, docs out of the API image
+|-- Dockerfile                       # backend-only API image for Cloud Run
 |-- .github/
 |   `-- workflows/
 |       |-- daily-maintenance.yml   # cron: detect patch change, refresh ladder
-|       `-- match-sync.yml           # cron: ingest new Challenger matches
+|       |-- match-sync.yml           # cron: ingest new Challenger matches
+|       `-- deploy.yml               # push to main: deploy the API to Cloud Run
 |-- backend/
 |   |-- __init__.py
 |   |-- main.py                      # FastAPI app entrypoint (CORS + router)
@@ -57,6 +76,10 @@ lol_draft_tool/
 |       |-- api.ts                     # transport layer
 |       |-- types.ts                   # TS mirrors of the Pydantic schemas
 |       `-- components/                # DraftBoard, ChampionGrid, etc.
+|-- docs/
+|   `-- images/                       # architecture diagrams used in this README
+|       |-- system-overview.png
+|       `-- backend-modules.png
 |-- pyproject.toml
 |-- uv.lock
 |-- README.md
@@ -106,7 +129,7 @@ All commands are subcommands of a single `ldt` console script:
 ldt init-db              # create Postgres schema
 ldt update-challengers   # refresh Challenger player list from Riot API
 ldt run-match-sync       # ingest match data for all Challenger players
-ldt daily-maintenance    # detect patch changes and archive stale data
+ldt daily-maintenance    # on a new patch, clear stale data; refresh champion list
 ```
 
 ## Running the app
