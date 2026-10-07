@@ -7,11 +7,14 @@ from backend.pipeline.ingest_and_process_matches import sync_all_challenger_matc
 from backend.pipeline.patch_maintenance import run_daily_maintenance
 from backend.pipeline.update_ladder import update_ladder
 
+USAGE = "usage: ldt {init-db,daily-maintenance,update-challengers,run-match-sync}"
+
 
 def main() -> None:
     args = sys.argv[1:]
     if not args:
-        return
+        # sys.exit with a string prints it to stderr and exits with status 1
+        sys.exit(USAGE)
 
     setup_logging()
 
@@ -27,5 +30,10 @@ def main() -> None:
 
         case "run-match-sync":
             sync_all_challenger_matches()
+
+        case _:
+            # without this, a typo'd command would exit 0 having done nothing,
+            # which shows up as a green-but-empty GitHub Actions run
+            sys.exit(f"ldt: unknown command '{args[0]}'\n{USAGE}")
 
     return

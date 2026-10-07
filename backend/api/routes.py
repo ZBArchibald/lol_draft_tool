@@ -18,15 +18,18 @@ recommendation_router = APIRouter(prefix="/api/recommend", tags=["recommendation
 
 champions_router = APIRouter(prefix="/api/champions", tags=["champions"])
 
+# Both handlers are plain `def`, not `async def`: they make blocking psycopg calls,
+# and FastAPI runs plain-def handlers in a worker threadpool. Inside an `async def`
+# those calls would block the event loop and stall every other request.
 @champions_router.get("")
-async def serve_champion_resources() -> dict[int, ChampionInfo]:
+def serve_champion_resources() -> dict[int, ChampionInfo]:
     return {
         champ_id: ChampionInfo(name=name, sprite_url=sprite_url)
         for champ_id, (name, sprite_url) in champion_dictionary_from_db().items()
     }
 
 @recommendation_router.post("", response_model=RecommendationResponse)
-async def recommend(draft_state_request: DraftStateRequest) -> RecommendationResponse:
+def recommend(draft_state_request: DraftStateRequest) -> RecommendationResponse:
     draft_state = DraftState(
         position=draft_state_request.position,
         banned=draft_state_request.banned,

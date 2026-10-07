@@ -12,10 +12,10 @@ from backend.external.riot_api import champion_table_from_ddragon, get_current_p
 LOG = logging.getLogger(__name__)
 
 def run_daily_maintenance() -> None:
-    archive_and_clear_on_patch_change()
+    clear_data_on_patch_change()
     sync_champion_list()
 
-def archive_and_clear_on_patch_change() -> None:
+def clear_data_on_patch_change() -> None:
     try:
         previous_patch = get_metadata_value("current_patch")
     except KeyError:
