@@ -21,6 +21,15 @@ batch ingestion pipeline run by GitHub Actions (right).
 
 ![Backend module map](docs/images/backend-modules.png)
 
+### Database schema
+
+The six Postgres tables, grouped by role. `matches` keeps the full draft in one
+wide row (ten champion slots plus the win label, one training example per row);
+the two aggregate tables are folded from it at ingest so recommendations read
+precomputed win counts.
+
+![Database schema](docs/images/database-schema.svg)
+
 ## Project Structure
 
 ```text
