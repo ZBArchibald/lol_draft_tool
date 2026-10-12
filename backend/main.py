@@ -1,10 +1,16 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from backend.api.rate_limit import rate_limit_middleware
 from backend.api.routes import champions_router, recommendation_router
 from backend.core.config import FRONTEND_ORIGINS
 
 app = FastAPI(title="LoL Draft Tool API")
+
+# Middleware added later wraps the ones added earlier, so the rate limiter goes in FIRST and
+# CORS second. That makes CORS the outer layer, so even a 429 response gets CORS headers and
+# the browser shows the real "rate limited" error instead of an opaque CORS failure.
+app.middleware("http")(rate_limit_middleware)
 
 # The frontend runs on a different origin than this API, so the browser needs an
 # explicit CORS allowlist. The localhost origins cover local dev; deployed

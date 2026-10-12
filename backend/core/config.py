@@ -23,6 +23,11 @@ FRONTEND_ORIGINS = [
     if origin.strip()
 ]
 
+# Per-client cap on API requests: at most RATE_LIMIT_REQUESTS in any rolling
+# RATE_LIMIT_WINDOW_SECONDS. Enforced in backend/api/rate_limit.py.
+RATE_LIMIT_REQUESTS = 100
+RATE_LIMIT_WINDOW_SECONDS = 5 * 60
+
 QUEUE_ID = 420
 REGION = "na1"
 MATCH_REGION = "americas"
