@@ -2,7 +2,7 @@ import logging
 
 from backend.db.connection import db_connection
 from backend.db.queries import (
-    get_challenger_puuids,
+    get_ladder_puuids,
     get_last_synced_match_id,
     get_metadata_value,
     get_processed_match_ids,
@@ -52,7 +52,7 @@ _EMPTY_RELATIONSHIP_ROW = {
 
 
 def sync_all_challenger_matches(batch_size: int = 20) -> None:
-    puuids = get_challenger_puuids()
+    puuids = get_ladder_puuids()
     LOG.info("Starting match sync for %d challenger players", len(puuids))
 
     for count, puuid in enumerate(puuids, start=1):
