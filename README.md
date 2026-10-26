@@ -1,6 +1,6 @@
 # lol_draft_tool
 
-League of Legends draft recommendation tool. Ingests Challenger-ranked match
+League of Legends draft recommendation tool. Ingests Challenger- and Grandmaster-ranked match
 data via the Riot Games API, builds champion synergy/counter statistics in
 Postgres (hosted on Neon), and serves draft recommendations over a FastAPI
 backend with a React web client.
@@ -41,7 +41,7 @@ lol_draft_tool/
 |-- .github/
 |   `-- workflows/
 |       |-- daily-maintenance.yml   # cron: detect patch change, refresh ladder
-|       |-- match-sync.yml           # cron: ingest new Challenger matches
+|       |-- match-sync.yml           # cron: ingest new Challenger + Grandmaster matches
 |       `-- deploy.yml               # push to main: deploy the API to Cloud Run
 |-- backend/
 |   |-- __init__.py
@@ -136,8 +136,8 @@ All commands are subcommands of a single `ldt` console script:
 
 ```powershell
 ldt init-db              # create Postgres schema
-ldt update-challengers   # refresh Challenger player list from Riot API
-ldt run-match-sync       # ingest match data for all Challenger players
+ldt update-ladder        # refresh Challenger + Grandmaster player list from Riot API
+ldt run-match-sync       # ingest match data for all ladder players
 ldt daily-maintenance    # on a new patch, clear stale data; refresh champion list
 ```
 
@@ -171,7 +171,7 @@ Two scheduled workflows in `.github/workflows/` run the ingestion pipeline —
 no manual invocation needed:
 
 - `daily-maintenance.yml` — once a day (~3 AM PT); runs `ldt daily-maintenance`
-  then `ldt update-challengers`
+  then `ldt update-ladder`
 - `match-sync.yml` — every 12 hours; runs `ldt run-match-sync`
 
 Both are also `workflow_dispatch`-triggerable. The runner reads `RIOT_API_KEY`
@@ -192,7 +192,7 @@ the module directly with a subcommand:
 
 ```powershell
 python -m backend.cli init-db
-python -m backend.cli update-challengers
+python -m backend.cli update-ladder
 python -m backend.cli run-match-sync
 python -m backend.cli daily-maintenance
 ```
@@ -201,7 +201,7 @@ python -m backend.cli daily-maintenance
 
 - `backend/` contains the application logic.
 - `backend/cli.py` is the single `ldt` console-script entry point; it dispatches to
-  `init-db`, `update-challengers`, `run-match-sync`, and `daily-maintenance`
+  `init-db`, `update-ladder`, `run-match-sync`, and `daily-maintenance`
   subcommands.
 - `backend/api/` exposes `draft_service.recommend_champions()` over HTTP via
   FastAPI (`backend/main.py` is the app entrypoint; run with `fastapi dev backend/main.py`
