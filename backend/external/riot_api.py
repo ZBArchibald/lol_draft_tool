@@ -165,15 +165,23 @@ def champion_table_from_ddragon() -> list[tuple[int, str, str]]:
     ]
 
 
-def get_challenger_league_puuids() -> list[str]:
+def _get_league_puuids(league: str) -> list[str]:
     url = (
         f"https://{REGION}.api.riotgames.com/lol/league/v4/"
-        "challengerleagues/by-queue/RANKED_SOLO_5x5"
+        f"{league}/by-queue/RANKED_SOLO_5x5"
     )
     response = _make_riot_request(url, timeout=10)
 
-    challenger_data = response.json()
-    return [entry["puuid"] for entry in challenger_data["entries"]]
+    league_data = response.json()
+    return [entry["puuid"] for entry in league_data["entries"]]
+
+
+def get_challenger_league_puuids() -> list[str]:
+    return _get_league_puuids("challengerleagues")
+
+
+def get_grandmaster_league_puuids() -> list[str]:
+    return _get_league_puuids("grandmasterleagues")
 
 
 def get_match_ids(puuid: str, start: int, count: int) -> list[str]:
