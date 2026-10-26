@@ -30,5 +30,5 @@ jobs:
       - name: Run daily maintenance
         run: uv run ldt daily-maintenance
 
-      - name: Update challenger ladder
-        run: uv run ldt update-challengers
+      - name: Update ladder
+        run: uv run ldt update-ladder
