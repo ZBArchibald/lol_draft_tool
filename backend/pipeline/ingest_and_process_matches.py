@@ -2,7 +2,7 @@ import logging
 
 from backend.db.connection import db_connection
 from backend.db.queries import (
-    get_challenger_puuids,
+    get_ladder_puuids,
     get_last_synced_match_id,
     get_metadata_value,
     get_processed_match_ids,
@@ -51,9 +51,9 @@ _EMPTY_RELATIONSHIP_ROW = {
 }
 
 
-def sync_all_challenger_matches(batch_size: int = 20) -> None:
-    puuids = get_challenger_puuids()
-    LOG.info("Starting match sync for %d challenger players", len(puuids))
+def sync_all_ladder_matches(batch_size: int = 20) -> None:
+    puuids = get_ladder_puuids()
+    LOG.info("Starting match sync for %d ladder players", len(puuids))
 
     for count, puuid in enumerate(puuids, start=1):
         sync_player_matches(puuid, batch_size)
@@ -92,7 +92,7 @@ def sync_player_matches(puuid: str, batch_size: int = 20) -> None:
                 break
 
             if match_id in already_processed:
-                # recorded via another challenger player's sync (shared match) - already
+                # recorded via another ladder player's sync (shared match) - already
                 # captured, but doesn't tell us anything about this player's own history
                 LOG.debug("Skipping %s for %s: already processed via another player", match_id, puuid)
                 continue

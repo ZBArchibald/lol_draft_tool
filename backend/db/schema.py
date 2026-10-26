@@ -21,9 +21,9 @@ SCHEMA_STATEMENTS = (
     )
     """,
     """
-    CREATE TABLE IF NOT EXISTS challenger_players (
+    CREATE TABLE IF NOT EXISTS ladder_players (
         puuid TEXT PRIMARY KEY,
-        currently_challenger BOOLEAN DEFAULT TRUE,
+        tier TEXT NOT NULL,
         last_synced_match_id TEXT
     )
     """,

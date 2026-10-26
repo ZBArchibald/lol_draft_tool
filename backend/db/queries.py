@@ -51,30 +51,32 @@ def champion_dictionary_from_db() -> dict[int, tuple[str, str]]:
         return {row[0]: (row[1], row[2]) for row in cursor.fetchall()}
 
 
-def get_challenger_puuids() -> list[str]:
+def get_ladder_puuids() -> list[str]:
     with db_connection() as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT puuid FROM challenger_players")
+        cursor.execute("SELECT puuid FROM ladder_players")
         return [row[0] for row in cursor.fetchall()]
 
 
-def replace_challenger_players(puuids: list[str]) -> None:
+def replace_ladder_players(players: list[tuple[str, str]]) -> None:
+    """players: (puuid, tier)"""
+    puuids = [puuid for puuid, _ in players]
     with db_connection() as conn:
         cursor = conn.cursor()
         # drop players who fell off the ladder; anyone still on it keeps their row
         # (and last_synced_match_id) via the upsert below instead of being recreated
         cursor.execute(
-            "DELETE FROM challenger_players WHERE NOT (puuid = ANY(%s))",
+            "DELETE FROM ladder_players WHERE NOT (puuid = ANY(%s))",
             (puuids,),
         )
 
         cursor.executemany(
             """
-            INSERT INTO challenger_players (puuid, currently_challenger)
-            VALUES (%s, TRUE)
-            ON CONFLICT (puuid) DO UPDATE SET currently_challenger = TRUE
+            INSERT INTO ladder_players (puuid, tier)
+            VALUES (%s, %s)
+            ON CONFLICT (puuid) DO UPDATE SET tier = excluded.tier
             """,
-            [(puuid,) for puuid in puuids],
+            players,
         )
 
 
@@ -82,7 +84,7 @@ def get_last_synced_match_id(puuid: str) -> str | None:
     with db_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT last_synced_match_id FROM challenger_players WHERE puuid = %s",
+            "SELECT last_synced_match_id FROM ladder_players WHERE puuid = %s",
             (puuid,),
         )
         row = cursor.fetchone()
@@ -91,7 +93,7 @@ def get_last_synced_match_id(puuid: str) -> str | None:
 
 def update_last_synced_match_id(conn: psycopg.Connection, puuid: str, match_id: str) -> None:
     conn.execute(
-        "UPDATE challenger_players SET last_synced_match_id = %s WHERE puuid = %s",
+        "UPDATE ladder_players SET last_synced_match_id = %s WHERE puuid = %s",
         (match_id, puuid),
     )
 
@@ -120,8 +122,8 @@ def clear_champion_stats(conn: psycopg.Connection) -> None:
     conn.execute("DELETE FROM champion_role_stats")
 
 
-def clear_challenger_players(conn: psycopg.Connection) -> None:
-    conn.execute("DELETE FROM challenger_players")
+def clear_ladder_players(conn: psycopg.Connection) -> None:
+    conn.execute("DELETE FROM ladder_players")
 
 
 def insert_matches(conn: psycopg.Connection, rows: list[dict]) -> None:
@@ -155,7 +157,7 @@ def clear_player_data(conn: psycopg.Connection) -> None:
     clear_matches(conn)
     clear_champion_relationships(conn)
     clear_champion_stats(conn)
-    clear_challenger_players(conn)
+    clear_ladder_players(conn)
 
 
 def upsert_champion_relationships(
