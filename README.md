@@ -12,14 +12,14 @@ backend with a React web client.
 Where each piece runs (Cloudflare Pages, Cloud Run, GitHub Actions, Neon) and
 what talks to what.
 
-![System overview](docs/images/system-overview.png)
+![System overview](docs/images/system-overview.svg)
 
 ### Backend module map
 
 How `backend/` is layered: the request path served on Cloud Run (left) and the
 batch ingestion pipeline run by GitHub Actions (right).
 
-![Backend module map](docs/images/backend-modules.png)
+![Backend module map](docs/images/backend-modules.svg)
 
 ### Database schema
 
@@ -87,8 +87,9 @@ lol_draft_tool/
 |       `-- components/                # DraftBoard, ChampionGrid, etc.
 |-- docs/
 |   `-- images/                       # architecture diagrams used in this README
-|       |-- system-overview.png
-|       `-- backend-modules.png
+|       |-- system-overview.svg
+|       |-- backend-modules.svg
+|       `-- database-schema.svg
 |-- pyproject.toml
 |-- uv.lock
 |-- README.md
