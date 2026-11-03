@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import type { ChampionDict, Position, SlotRef } from '../types'
+import { POSITIONS, POSITION_LABELS, type ChampionDict, type Position, type SlotRef } from '../types'
 import RoleTabs from './RoleTabs'
 
 interface Props {
@@ -63,6 +63,21 @@ export default function ChampionGrid({
           selected={roleFilter}
           onSelect={(position) => setRoleFilter((cur) => (cur === position ? null : position))}
         />
+        {/* Same filter as a native dropdown; CSS shows it instead of the buttons in the
+            narrow (portrait phone) layout, where five buttons don't fit. */}
+        <select
+          className="role-select"
+          aria-label="Filter champions by role"
+          value={roleFilter ?? ''}
+          onChange={(e) => setRoleFilter((e.target.value || null) as Position | null)}
+        >
+          <option value="">All roles</option>
+          {POSITIONS.map((position) => (
+            <option key={position} value={position}>
+              {POSITION_LABELS[position]}
+            </option>
+          ))}
+        </select>
       </div>
       <div className="champion-grid">
         {visible.map((champ) => {

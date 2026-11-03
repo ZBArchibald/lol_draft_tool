@@ -1,5 +1,9 @@
 /* Base styles. Theme tokens and mc-* components live in ./theme/. */
 
+html {
+  background: var(--ivory); /* covers any gap below body under zoom */
+}
+
 :root {
   --body: var(--font-body); /* background.css refers to --body */
   color-scheme: light;
@@ -13,7 +17,7 @@
 
 body {
   margin: 0;
-  min-height: 100vh;
+  min-height: var(--layout-height, 100vh);
   background: var(--ivory);
   color: var(--black);
   -webkit-font-smoothing: antialiased;

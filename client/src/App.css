@@ -6,7 +6,8 @@
 /* Shared portrait size: one recommendation item (15 across the bar, 14 gaps of
    10px). The champion grid reuses it so both sets of portraits match. */
 :root {
-  --recs-icon: max(44px, calc((100vw - 2 * var(--gutter) - 140px) / 15)); /* 44px floor for phones */
+  /* --layout-width is the true layout width under viewportScale.ts's zoom (vw isn't). */
+  --recs-icon: max(44px, calc((var(--layout-width, 100vw) - 2 * var(--gutter) - 140px) / 15)); /* 44px floor for phones */
   --grid-icon: max(52px, var(--recs-icon)); /* floor keeps the grid usable on phones */
 }
 
@@ -42,7 +43,7 @@
 .fullscreen-state {
   position: relative;
   z-index: 2;
-  min-height: 100vh;
+  min-height: var(--layout-height, 100vh);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -84,31 +85,32 @@
 }
 
 /* Never stack: the side columns shrink with the viewport instead. */
-@media (max-width: 720px) {
-  .draft-board {
-    grid-template-columns: clamp(60px, 20vw, 204px) minmax(0, 1fr) clamp(60px, 20vw, 204px);
+/* narrow layout (set by viewportScale.ts from the true layout width) */
+  :root[data-layout='narrow'] .draft-board {
+    grid-template-columns: clamp(60px, calc(var(--layout-width, 100vw) * 0.2), 204px) minmax(0, 1fr)
+      clamp(60px, calc(var(--layout-width, 100vw) * 0.2), 204px);
     gap: 16px 10px;
   }
-  .pick-slot {
+  :root[data-layout='narrow'] .pick-slot {
     justify-content: center;
     min-height: 52px;
     padding: 4px;
   }
-  .pick-slot-icon {
+  :root[data-layout='narrow'] .pick-slot-icon {
     width: 40px;
     height: 40px;
   }
-  .pick-slot-name {
+  :root[data-layout='narrow'] .pick-slot-name {
     display: none;
   }
-  .ban-row-slots {
+  :root[data-layout='narrow'] .ban-row-slots {
     flex-wrap: wrap;
   }
-  .team-column-title,
-  .ban-row-label {
+  :root[data-layout='narrow'] .team-column-title,
+  :root[data-layout='narrow'] .ban-row-label {
     font-size: 11px;
   }
-}
+
 
 /* ===== Team columns / pick slots ===== */
 
@@ -291,13 +293,78 @@
   display: inline;
 }
 
-@media (max-width: 720px) {
-  .tab-label-long {
+/* narrow layout (set by viewportScale.ts from the true layout width) */
+  :root[data-layout='narrow'] .tab-label-long {
     display: none;
   }
-  .tab-label-short {
+  :root[data-layout='narrow'] .tab-label-short {
     display: inline;
   }
+
+
+/* Grid filter as a dropdown: only in the narrow layout (see .role-select below). */
+.role-select {
+  display: none;
+}
+
+:root[data-layout='narrow'] .champion-toolbar .role-tabs {
+  display: none;
+}
+
+:root[data-layout='narrow'] .role-select {
+  display: block;
+  width: 100%;
+  min-height: 40px;
+  padding: 6px 8px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--black);
+  background: var(--ivory);
+  border: var(--border-thin) solid var(--black);
+  border-radius: 0;
+}
+
+:root[data-layout='narrow'] .champion-search {
+  flex-basis: 100%;
+  min-height: 40px;
+}
+
+/* two smaller portraits per row in the narrow centre column */
+:root[data-layout='narrow'] .champion-grid {
+  grid-template-columns: repeat(auto-fill, minmax(48px, 1fr));
+  gap: 0 8px;
+  padding: 8px;
+}
+
+:root[data-layout='narrow'] .team-column-title,
+:root[data-layout='narrow'] .ban-row-label {
+  white-space: nowrap;
+  font-size: 10px;
+}
+
+/* Narrow (portrait phone) layout: the five buttons share the row evenly on one line
+   instead of wrapping (the filter onto 3 rows, the role label onto its own line). */
+:root[data-layout='narrow'] .role-tabs {
+  flex-wrap: nowrap;
+}
+
+:root[data-layout='narrow'] .role-tabs .mc-tabs {
+  flex: 1;
+  flex-wrap: nowrap;
+  gap: 4px;
+}
+
+:root[data-layout='narrow'] .role-tabs .mc-tab {
+  flex: 1 1 0;
+  min-width: 0;
+  padding-left: 0;
+  padding-right: 0;
+  text-align: center;
+}
+
+:root[data-layout='narrow'] .recs-controls .role-tabs {
+  flex-basis: 100%;
 }
 
 /* Touch screens: ~40px tap targets. */
@@ -307,6 +374,10 @@
     min-width: 44px;
     padding: 8px 12px;
     font-size: 13px;
+  }
+  :root[data-layout='narrow'] .role-tabs .mc-tab {
+    min-width: 0;
+    padding: 8px 0;
   }
 }
 
@@ -567,5 +638,151 @@
   box-shadow: var(--shadow-2);
 }
 
-@media (max-width: 720px) {
+/* ===== Rotate-your-phone hint (portrait phones only) ===== */
+
+.rotate-hint {
+  display: none;
+}
+
+@media (orientation: portrait) and (max-width: 720px) and (pointer: coarse) {
+  .rotate-hint {
+    position: fixed;
+    inset: 0;
+    z-index: 50; /* above the recommendations bar and its tooltip */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--gutter);
+    background: var(--ivory);
+  }
+}
+
+.rotate-hint-card {
+  --accent: var(--black); /* heading underline + button: neutral, not a team colour */
+  max-width: 340px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 24px 22px;
+  text-align: center;
+  background: var(--white);
+  border: var(--border-thick) solid var(--black);
+  box-shadow: var(--shadow-5);
+}
+
+.rotate-hint-card .mc-heading {
+  font-size: 18px;
+}
+
+.rotate-hint-card p {
+  font-size: 14px;
+}
+
+.rotate-hint-icon {
+  font-size: 44px;
+  line-height: 1;
+}
+
+/* ===== Short layout (landscape phones; set by viewportScale.ts) =====
+   ~340px of usable height: shrink the header and side columns so the whole board
+   fits one screen, let the grid take the remaining height, and un-pin the
+   recommendations so they scroll below the board instead of covering it. */
+
+:root[data-layout='short'] .app {
+  /* side-column budget: 5 pick slots share what's left after header, titles and bans */
+  --slot-h: max(30px, calc((var(--layout-height) - 170px) / 5));
+  padding: 8px var(--gutter) 16px;
+}
+
+:root[data-layout='short'] .app-header {
+  margin-bottom: 8px;
+}
+
+:root[data-layout='short'] .app-title {
+  font-size: 22px;
+  -webkit-text-stroke-width: 1px;
+  filter: drop-shadow(2px 2px 0 var(--black));
+}
+
+:root[data-layout='short'] .draft-board {
+  grid-template-columns: 160px minmax(0, 1fr) 160px;
+  gap: 10px 16px;
+}
+
+/* The grid window fills the screen height below the header (8px padding + ~30px
+   header + room for the window's shadow); the grid flexes into whatever the
+   toolbar leaves, however many rows it wraps to. */
+:root[data-layout='short'] .draft-board-center {
+  height: calc(var(--layout-height) - 50px);
+}
+
+:root[data-layout='short'] .champion-window {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+:root[data-layout='short'] .team-column {
+  gap: 6px;
+}
+
+:root[data-layout='short'] .team-column-title,
+:root[data-layout='short'] .ban-row-label {
+  font-size: 12px;
+  margin-bottom: 0;
+}
+
+:root[data-layout='short'] .pick-slot {
+  min-height: 0;
+  height: var(--slot-h);
+  padding: 3px;
+}
+
+:root[data-layout='short'] .pick-slot-icon {
+  width: calc(var(--slot-h) - 10px);
+  height: calc(var(--slot-h) - 10px);
+}
+
+:root[data-layout='short'] .pick-slot-name {
+  font-size: 13px;
+}
+
+:root[data-layout='short'] .pick-slot-placeholder {
+  font-size: 18px;
+}
+
+:root[data-layout='short'] .ban-row {
+  gap: 4px;
+}
+
+:root[data-layout='short'] .ban-slot {
+  width: 28px;
+  height: 28px;
+}
+
+:root[data-layout='short'] .champion-toolbar {
+  padding: 6px 8px;
+  gap: 6px 10px;
+}
+
+:root[data-layout='short'] .champion-search {
+  padding: 4px 8px;
+  font-size: 13px;
+}
+
+:root[data-layout='short'] .champion-grid {
+  flex: 1;
+  min-height: 0;
+  height: auto;
+  padding: 8px;
+}
+
+/* recommendations: in the page flow, full board width, below the bans */
+:root[data-layout='short'] .recs-panel {
+  position: static;
+  grid-column: 1 / -1;
+  border: var(--border-thick) solid var(--black);
+  box-shadow: var(--shadow-5);
+  padding: 8px 12px;
 }

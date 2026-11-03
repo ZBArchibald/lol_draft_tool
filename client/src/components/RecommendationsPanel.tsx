@@ -6,6 +6,7 @@ import {
   type Position,
 } from '../types'
 import RoleTabs from './RoleTabs'
+import { getZoom } from '../viewportScale'
 
 // Name label anchored above one item, in viewport coordinates.
 interface Label {
@@ -49,8 +50,11 @@ export default function RecommendationsPanel({
 
   // Read currentTarget synchronously: React nulls it once the handler returns.
   const anchor = (champion: number, el: HTMLElement): Label => {
+    // getBoundingClientRect is in zoomed (visual) px; the label's left/top are in
+    // layout px, which the page zoom scales again, so divide it back out.
     const rect = el.getBoundingClientRect()
-    return { champion, left: rect.left + rect.width / 2, top: rect.top - 6 }
+    const z = getZoom()
+    return { champion, left: (rect.left + rect.width / 2) / z, top: rect.top / z - 6 }
   }
   const show = (champion: number) => (e: MouseEvent<HTMLElement> | FocusEvent<HTMLElement>) =>
     setHovered(anchor(champion, e.currentTarget))
@@ -63,6 +67,14 @@ export default function RecommendationsPanel({
     setHovered(null)
     setPinned(null)
   }
+
+  // The label is position: fixed, so a page scroll would leave it behind (the bar
+  // scrolls with the page in the short layout): clear it.
+  useEffect(() => {
+    if (!hovered && !pinned) return
+    window.addEventListener('scroll', clearAll, { passive: true })
+    return () => window.removeEventListener('scroll', clearAll)
+  }, [hovered, pinned])
 
   // Any press outside the recommendation icons clears the pinned name.
   useEffect(() => {

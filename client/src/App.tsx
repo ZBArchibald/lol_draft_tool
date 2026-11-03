@@ -9,6 +9,7 @@ import type {
 } from './types'
 import type { Position } from './types'
 import DraftBoard from './components/DraftBoard'
+import RotateHint from './components/RotateHint'
 import './App.css'
 
 const EMPTY_DRAFT: Draft = {
@@ -158,6 +159,7 @@ export default function App() {
 
   return (
     <div className="app">
+      <RotateHint />
       <header className="app-header">
         <h1 className="app-title">LOL DRAFT TOOL</h1>
       </header>
