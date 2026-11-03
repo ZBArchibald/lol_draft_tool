@@ -11,9 +11,9 @@ interface Props {
 
 export default function TeamColumn({ team, picks, champions, activeSlot, onSlotClick }: Props) {
   return (
-    <div className={`team-column team-column--${team}`}>
-      <h2 className="team-column-title">
-        {team === 'blue' ? 'Your team' : 'Enemy team'}
+    <section className={`team-column team-column--${team}`}>
+      <h2 className="mc-heading team-column-title">
+        {team === 'blue' ? 'YOUR TEAM' : 'ENEMY TEAM'}
       </h2>
       {picks.map((championId, index) => {
         const slot: SlotRef = { team, kind: 'pick', index }
@@ -30,6 +30,6 @@ export default function TeamColumn({ team, picks, champions, activeSlot, onSlotC
           />
         )
       })}
-    </div>
+    </section>
   )
 }

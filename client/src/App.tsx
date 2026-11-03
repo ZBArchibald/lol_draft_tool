@@ -5,11 +5,10 @@ import type {
   ChampionRecommendation,
   Draft,
   DraftStateRequest,
-  Position,
   SlotRef,
 } from './types'
+import type { Position } from './types'
 import DraftBoard from './components/DraftBoard'
-import RoleSelector from './components/RoleSelector'
 import './App.css'
 
 const EMPTY_DRAFT: Draft = {
@@ -53,6 +52,7 @@ export default function App() {
   const [championsRetry, setChampionsRetry] = useState(0)
 
   const [draft, setDraft] = useState<Draft>(EMPTY_DRAFT)
+  // Your position; chosen in the recommendations bar and drives the recommendations.
   const [role, setRole] = useState<Position>('mid')
   const [activeSlot, setActiveSlot] = useState<SlotRef | null>(null)
 
@@ -138,8 +138,10 @@ export default function App() {
   if (championsError) {
     return (
       <div className="fullscreen-state">
-        <p className="error-text">{championsError}</p>
-        <button onClick={() => setChampionsRetry((n) => n + 1)}>Retry</button>
+        <p className="mc-note">{championsError}</p>
+        <button className="mc-btn" onClick={() => setChampionsRetry((n) => n + 1)}>
+          RETRY
+        </button>
       </div>
     )
   }
@@ -147,7 +149,9 @@ export default function App() {
   if (!champions) {
     return (
       <div className="fullscreen-state">
-        <p>Loading champions…</p>
+        <p className="mc-note">
+          <b>LOADING</b> Fetching the champion list.
+        </p>
       </div>
     )
   }
@@ -155,8 +159,7 @@ export default function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>LoL Draft Tool</h1>
-        <RoleSelector role={role} onChange={setRole} />
+        <h1 className="app-title">LOL DRAFT TOOL</h1>
       </header>
       <DraftBoard
         champions={champions}
@@ -170,6 +173,7 @@ export default function App() {
         recsError={recsError}
         onRecsRetry={() => setRecsRetry((n) => n + 1)}
         role={role}
+        onRoleChange={setRole}
       />
     </div>
   )

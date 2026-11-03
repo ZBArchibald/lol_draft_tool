@@ -1,19 +1,10 @@
-:root {
-  /* Dark theme loosely based on the LoL client palette */
-  --bg: #010a13;
-  --panel: #0a1428;
-  --panel-light: #0f1f38;
-  --border: #1e2328;
-  --gold: #c8aa6e;
-  --gold-bright: #f0e6d2;
-  --blue-team: #0ac8b9;
-  --red-team: #e84057;
-  --text: #a09b8c;
-  --error: #e84057;
+/* Base styles. Theme tokens and mc-* components live in ./theme/. */
 
-  color-scheme: dark;
-  font-family: 'Segoe UI', system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.4;
+:root {
+  --body: var(--font-body); /* background.css refers to --body */
+  color-scheme: light;
+  font-family: var(--font-body);
+  line-height: 1.55;
 }
 
 * {
@@ -23,31 +14,39 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background: var(--bg);
-  color: var(--text);
+  background: var(--ivory);
+  color: var(--black);
+  -webkit-font-smoothing: antialiased;
+  position: relative;
 }
 
 h1,
-h2 {
-  color: var(--gold-bright);
-  font-weight: 600;
+h2,
+h3,
+p {
   margin: 0;
 }
 
 button {
   font: inherit;
   color: inherit;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 4px;
   cursor: pointer;
 }
 
-button:hover:not(:disabled) {
-  border-color: var(--gold);
+button:focus-visible,
+input:focus-visible {
+  outline: 3px dashed var(--black);
+  outline-offset: 3px;
 }
 
 img {
   max-width: 100%;
   display: block;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
 }

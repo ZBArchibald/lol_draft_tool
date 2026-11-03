@@ -12,22 +12,24 @@ interface Props {
 export default function BanRow({ team, bans, champions, activeSlot, onSlotClick }: Props) {
   return (
     <div className={`ban-row ban-row--${team}`}>
-      <span className="ban-row-label">{team === 'blue' ? 'Your bans' : 'Enemy bans'}</span>
-      {bans.map((championId, index) => {
-        const slot: SlotRef = { team, kind: 'ban', index }
-        const isActive =
-          activeSlot?.team === team &&
-          activeSlot.kind === 'ban' &&
-          activeSlot.index === index
-        return (
-          <BanSlot
-            key={index}
-            championInfo={championId !== null ? champions[championId] : null}
-            isActive={isActive}
-            onClick={() => onSlotClick(slot)}
-          />
-        )
-      })}
+      <h2 className="mc-heading ban-row-label">{team === 'blue' ? 'YOUR BANS' : 'ENEMY BANS'}</h2>
+      <div className="ban-row-slots">
+        {bans.map((championId, index) => {
+          const slot: SlotRef = { team, kind: 'ban', index }
+          const isActive =
+            activeSlot?.team === team &&
+            activeSlot.kind === 'ban' &&
+            activeSlot.index === index
+          return (
+            <BanSlot
+              key={index}
+              championInfo={championId !== null ? champions[championId] : null}
+              isActive={isActive}
+              onClick={() => onSlotClick(slot)}
+            />
+          )
+        })}
+      </div>
     </div>
   )
 }

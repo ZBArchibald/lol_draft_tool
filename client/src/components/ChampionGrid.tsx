@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
-import type { ChampionDict, SlotRef } from '../types'
+import type { ChampionDict, Position, SlotRef } from '../types'
+import RoleTabs from './RoleTabs'
 
 interface Props {
   champions: ChampionDict
@@ -15,6 +16,9 @@ export default function ChampionGrid({
   onChampionClick,
 }: Props) {
   const [search, setSearch] = useState('')
+  // Browsing filter only (null = all champions). At most one role is pressed;
+  // pressing the active one again releases it. Independent of your recommendation role.
+  const [roleFilter, setRoleFilter] = useState<Position | null>(null)
 
   // App creates a fresh SlotRef object per activation, so a reference change
   // here means a slot was just clicked — reset the search for the new slot.
@@ -33,21 +37,32 @@ export default function ChampionGrid({
   )
 
   const query = search.trim().toLowerCase()
-  const visible = query
-    ? sorted.filter((c) => c.name.toLowerCase().includes(query))
-    : sorted
+  const visible = sorted.filter(
+    (c) =>
+      (roleFilter === null || c.roles.includes(roleFilter)) &&
+      (!query || c.name.toLowerCase().includes(query)),
+  )
 
   return (
-    <div className="champion-grid-panel">
-      <div className="champion-grid-toolbar">
+    <figure className="mc-window champion-window">
+      {/* One toolbar: search + role filter. */}
+      <div className="mc-window__bar champion-toolbar">
         <input
           type="search"
           className="champion-search"
-          placeholder="Search champions…"
+          placeholder="Search champions"
+          aria-label="Search champions"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <span className="champion-grid-hint">Pick a champion for the selected slot</span>
+        <RoleTabs
+          label="Filter"
+          mode="toggle"
+          compact
+          hideLabel
+          selected={roleFilter}
+          onSelect={(position) => setRoleFilter((cur) => (cur === position ? null : position))}
+        />
       </div>
       <div className="champion-grid">
         {visible.map((champ) => {
@@ -57,7 +72,7 @@ export default function ChampionGrid({
               key={champ.id}
               className={`champion-cell${used ? ' champion-cell--used' : ''}`}
               onClick={() => onChampionClick(champ.id)}
-              disabled={used}
+              disabled={used || activeSlot === null}
               title={champ.name}
             >
               <img src={champ.sprite_url} alt="" loading="lazy" className="champion-cell-icon" />
@@ -66,9 +81,9 @@ export default function ChampionGrid({
           )
         })}
         {visible.length === 0 && (
-          <p className="champion-grid-empty">No champions match “{search}”</p>
+          <p className="champion-grid-empty">No champions match your filter.</p>
         )}
       </div>
-    </div>
+    </figure>
   )
 }

@@ -3,9 +3,29 @@
 export const POSITIONS = ['top', 'jungle', 'mid', 'bot', 'support'] as const
 export type Position = (typeof POSITIONS)[number]
 
+export const POSITION_LABELS: Record<Position, string> = {
+  top: 'TOP',
+  jungle: 'JUNGLE',
+  mid: 'MID',
+  bot: 'BOT',
+  support: 'SUPPORT',
+}
+
+// Compact labels for narrow screens.
+export const POSITION_SHORT_LABELS: Record<Position, string> = {
+  top: 'TOP',
+  jungle: 'JG',
+  mid: 'MID',
+  bot: 'BOT',
+  support: 'SUP',
+}
+
 export interface ChampionInfo {
   name: string
   sprite_url: string
+  // Positions the champion is viable in (same >=20% role-share rule the
+  // recommender uses). Empty until the champion has ingested games.
+  roles: Position[]
 }
 
 // GET /api/champions — JSON object keys arrive as stringified ints;

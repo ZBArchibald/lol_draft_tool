@@ -1,5 +1,6 @@
 from backend.db.queries import (
     get_candidate_champions,
+    get_champion_roles,
     get_champion_relationships_bulk,
     get_winrates,
 )
@@ -13,6 +14,18 @@ _POSITION_TO_ROLE = {
     Position.BOT: "BOTTOM",
     Position.SUPPORT: "UTILITY",
 }
+_ROLE_TO_POSITION = {role: position for position, role in _POSITION_TO_ROLE.items()}
+
+# Minimum share of a champion's games in a role for it to count as playing that role.
+MIN_ROLERATE = 0.2
+
+
+def get_champion_positions() -> dict[int, list[Position]]:
+    """champ_id -> positions the champion is viable in (the same rule recommendations use)."""
+    return {
+        champ_id: [_ROLE_TO_POSITION[role] for role in roles if role in _ROLE_TO_POSITION]
+        for champ_id, roles in get_champion_roles(MIN_ROLERATE).items()
+    }
 
 
 def recommend_champions(draft_state: DraftState) -> dict:
@@ -23,7 +36,7 @@ def recommend_champions(draft_state: DraftState) -> dict:
 
     excluded = set(draft_state.banned + draft_state.allies + draft_state.enemies)
     candidate_champions = [
-        c for c in get_candidate_champions(role, minimum_rolerate=.2)
+        c for c in get_candidate_champions(role, minimum_rolerate=MIN_ROLERATE)
         if c not in excluded
     ]
 

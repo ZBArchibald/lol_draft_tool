@@ -1,9 +1,22 @@
+/* App styles on top of the Marker & Carpet theme (src/theme/). Only layout and
+   app-specific pieces live here; every colour, shadow and border is a token. */
+
 /* ===== App shell ===== */
 
+/* Shared portrait size: one recommendation item (15 across the bar, 14 gaps of
+   10px). The champion grid reuses it so both sets of portraits match. */
+:root {
+  --recs-icon: max(44px, calc((100vw - 2 * var(--gutter) - 140px) / 15)); /* 44px floor for phones */
+  --grid-icon: max(52px, var(--recs-icon)); /* floor keeps the grid usable on phones */
+}
+
 .app {
-  max-width: 1280px;
+  position: relative;
+  z-index: 2; /* above the carpet */
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 1rem 1.5rem 2rem;
+  /* room for the fixed recommendations bar, whose height scales with its 15-across items */
+  padding: 24px var(--gutter) calc(var(--recs-icon) + 150px);
 }
 
 .app-header {
@@ -11,118 +24,89 @@
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 1rem;
+  gap: 16px;
+  margin-bottom: 28px;
 }
 
-.app-header h1 {
-  font-size: 1.4rem;
-  letter-spacing: 0.04em;
+.app-title {
+  font-family: var(--font-marker);
+  font-weight: 400;
+  font-size: clamp(28px, 5vw, 42px);
+  line-height: 1;
+  color: var(--white);
+  -webkit-text-stroke: 2px var(--black);
+  paint-order: stroke fill;
+  filter: drop-shadow(4px 4px 0 var(--black));
 }
 
 .fullscreen-state {
+  position: relative;
+  z-index: 2;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1rem;
-  font-size: 1.1rem;
-}
-
-.error-text {
-  color: var(--error);
-  margin: 0;
-}
-
-/* ===== Role selector ===== */
-
-.role-selector {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.role-selector-label {
-  margin-right: 0.25rem;
-}
-
-.role-button {
-  padding: 0.35rem 0.8rem;
-}
-
-.role-button--active {
-  border-color: var(--gold);
-  background: var(--panel-light);
-  color: var(--gold-bright);
-  box-shadow: 0 0 6px rgba(200, 170, 110, 0.4);
+  gap: 20px;
 }
 
 /* ===== Board layout ===== */
 
 .draft-board {
   display: grid;
-  grid-template-columns: 150px minmax(0, 1fr) 150px 280px;
+  grid-template-columns: 204px minmax(0, 1fr) 204px;
   grid-template-areas:
-    'blue grid red recs'
-    'bans bans bans recs';
-  gap: 1rem;
+    'blue center red'
+    'bluebans center redbans';
+  grid-template-rows: auto 1fr;
+  gap: 22px 24px;
   align-items: start;
 }
 
 .team-column--blue {
   grid-area: blue;
 }
-
-.champion-grid-panel {
-  grid-area: grid;
-}
-
 .team-column--red {
   grid-area: red;
 }
-
-.recs-panel {
-  grid-area: recs;
-}
-
-/* Idle mode: no slot active, so the champion grid is hidden and the
-   recommendations panel sits in the center column instead. */
-.draft-board--idle {
-  grid-template-columns: 150px minmax(0, 1fr) 150px;
-  grid-template-areas:
-    'blue grid red'
-    'bans bans bans';
-}
-
-.recs-center {
-  grid-area: grid;
+.draft-board-center {
+  grid-area: center;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  gap: 28px;
+  min-width: 0;
+}
+.ban-row--blue {
+  grid-area: bluebans;
+}
+.ban-row--red {
+  grid-area: redbans;
 }
 
-.recs-center .recs-panel {
-  width: 100%;
-  max-width: 460px;
-}
-
-.ban-rows {
-  grid-area: bans;
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-@media (max-width: 1100px) {
+/* Never stack: the side columns shrink with the viewport instead. */
+@media (max-width: 720px) {
   .draft-board {
-    grid-template-columns: 150px minmax(0, 1fr) 150px;
-    grid-template-areas:
-      'blue grid red'
-      'bans bans bans'
-      'recs recs recs';
+    grid-template-columns: clamp(60px, 20vw, 204px) minmax(0, 1fr) clamp(60px, 20vw, 204px);
+    gap: 16px 10px;
+  }
+  .pick-slot {
+    justify-content: center;
+    min-height: 52px;
+    padding: 4px;
+  }
+  .pick-slot-icon {
+    width: 40px;
+    height: 40px;
+  }
+  .pick-slot-name {
+    display: none;
+  }
+  .ban-row-slots {
+    flex-wrap: wrap;
+  }
+  .team-column-title,
+  .ban-row-label {
+    font-size: 11px;
   }
 }
 
@@ -131,60 +115,73 @@
 .team-column {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 12px;
+}
+
+.team-column--blue {
+  --accent: var(--cobalt);
+}
+.team-column--red {
+  --accent: var(--red);
 }
 
 .team-column-title {
-  font-size: 0.95rem;
-  padding-bottom: 0.25rem;
-}
-
-.team-column--blue .team-column-title {
-  color: var(--blue-team);
-}
-
-.team-column--red .team-column-title {
-  color: var(--red-team);
+  align-self: flex-start;
 }
 
 .pick-slot {
+  position: relative;
+  min-width: 0;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.35rem;
-  min-height: 56px;
-  background: var(--panel);
-  border: 1px dashed var(--border);
+  gap: 10px;
+  padding: 6px;
+  min-height: 68px;
+  background: var(--white);
+  border: var(--border-thin) dashed var(--black);
+  border-radius: var(--radius-0);
   text-align: left;
+  transition: transform 0.12s, box-shadow 0.12s, border-color 0.12s;
+}
+
+/* Shadows only once a champion is picked; an empty slot just takes the team colour on hover. */
+.pick-slot:hover {
+  border-color: var(--accent);
+}
+
+.pick-slot--filled:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: var(--shadow-3);
 }
 
 .pick-slot--filled {
   border-style: solid;
+  border-left-width: 8px;
+  border-left-color: var(--accent);
+  box-shadow: var(--shadow-2);
 }
 
-.team-column--blue .pick-slot--filled {
-  border-color: var(--blue-team);
-}
-
-.team-column--red .pick-slot--filled {
-  border-color: var(--red-team);
-}
-
-.pick-slot--active {
-  border-style: solid;
-  border-color: var(--gold);
-  box-shadow: 0 0 8px rgba(200, 170, 110, 0.55);
+/* Selected slot: enlarged with a solid team-colour border; no shadow or outline. */
+.pick-slot--active,
+.pick-slot--active:hover {
+  z-index: 1;
+  border: var(--border-thick) solid var(--accent);
+  box-shadow: none;
+  transform: scale(1.1);
 }
 
 .pick-slot-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 3px;
+  width: 52px;
+  height: 52px;
+  border: var(--border-thin) solid var(--black);
 }
 
 .pick-slot-name {
-  color: var(--gold-bright);
-  font-size: 0.85rem;
+  flex: 1;
+  min-width: 0;
+  text-align: center; /* centred in the space right of the portrait */
+  font-weight: 600;
+  font-size: 15px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -193,121 +190,206 @@
 .pick-slot-placeholder {
   width: 100%;
   text-align: center;
-  font-size: 1.3rem;
-  opacity: 0.5;
+  font-family: var(--font-marker);
+  font-size: 24px;
+  opacity: var(--opacity-off);
 }
 
 /* ===== Ban rows ===== */
 
 .ban-row {
   display: flex;
-  align-items: center;
-  gap: 0.4rem;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ban-row--blue {
+  --accent: var(--cobalt);
+}
+.ban-row--red {
+  --accent: var(--red);
 }
 
 .ban-row-label {
-  font-size: 0.85rem;
-  margin-right: 0.3rem;
+  align-self: flex-start;
+  font-size: 12px;
+  margin: 0;
 }
 
-.ban-row--blue .ban-row-label {
-  color: var(--blue-team);
-}
-
-.ban-row--red .ban-row-label {
-  color: var(--red-team);
+.ban-row-slots {
+  display: flex;
+  gap: 6px;
 }
 
 .ban-slot {
-  width: 40px;
-  height: 40px;
+  width: 34px;
+  height: 34px;
   padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-style: dashed;
+  background: var(--white);
+  border: var(--border-thin) dashed var(--black);
+  border-radius: 0;
   overflow: hidden;
+  transition: transform 0.12s;
 }
 
 .ban-slot--filled {
   border-style: solid;
-  border-color: var(--red-team);
+  border-color: var(--accent);
 }
 
 .ban-slot--active {
-  border-style: solid;
-  border-color: var(--gold);
-  box-shadow: 0 0 8px rgba(200, 170, 110, 0.55);
+  position: relative;
+  z-index: 1;
+  border: var(--border-thick) solid var(--accent);
+  transform: scale(1.25);
 }
 
 .ban-slot-icon {
   width: 100%;
   height: 100%;
-  filter: grayscale(0.8) brightness(0.7);
+  filter: grayscale(1) contrast(0.9);
 }
 
 .ban-slot-placeholder {
-  opacity: 0.4;
+  font-family: var(--font-marker);
+  font-size: 12px;
+  opacity: var(--opacity-off);
 }
 
-/* ===== Champion grid ===== */
+/* ===== Role tabs (grid filter + your-role selector) ===== */
 
-.champion-grid-toolbar {
+.role-tabs {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 0.6rem;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+}
+
+/* Informational label for a control: plain Archivo, same as the other body text. */
+.control-label {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.role-tabs .mc-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tab-label-short {
+  display: none;
+}
+
+.role-tabs--compact .tab-label-long {
+  display: none;
+}
+.role-tabs--compact .tab-label-short {
+  display: inline;
+}
+
+@media (max-width: 720px) {
+  .tab-label-long {
+    display: none;
+  }
+  .tab-label-short {
+    display: inline;
+  }
+}
+
+/* Touch screens: ~40px tap targets. */
+@media (pointer: coarse) {
+  .role-tabs .mc-tab {
+    min-height: 40px;
+    min-width: 44px;
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+}
+
+/* ===== Champion grid (mc-window) ===== */
+
+/* Pressed/selected role button: black with white text. Not cobalt, since cobalt and
+   red mean your team / the enemy. Covers the filter (aria-pressed) and your-role
+   selector (aria-selected). */
+.role-tabs .mc-tab[aria-pressed='true'],
+.role-tabs .mc-tab[aria-selected='true'] {
+  background: var(--black);
+  color: var(--white);
+  box-shadow: var(--shadow-2);
+}
+
+.champion-window {
+  background: var(--white);
+}
+
+.champion-toolbar {
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  padding: 10px 12px;
 }
 
 .champion-search {
-  flex: 0 1 240px;
-  padding: 0.4rem 0.6rem;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  color: var(--gold-bright);
-}
-
-.champion-search:focus {
-  outline: none;
-  border-color: var(--gold);
-}
-
-.champion-grid-hint {
-  font-size: 0.8rem;
-  opacity: 0.8;
+  flex: 1 1 130px; /* fills the rest of the toolbar row beside the filter buttons */
+  min-width: 0;
+  padding: 6px 10px;
+  font: inherit;
+  font-size: 14px;
+  background: var(--white);
+  color: var(--black);
+  border: var(--border-thin) solid var(--black);
+  border-radius: 0;
 }
 
 .champion-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
-  gap: 0.4rem;
-  max-height: 62vh;
+  /* Columns stretch to fill the row exactly and the portraits grow with them, so
+     there's no leftover margin at the sides (portraits end up a few px larger than
+     --grid-icon). Even spacing, icon edge to icon edge (cell border 2px):
+       horizontal = 2 + column-gap 16 + 2                       = 20px
+       vertical   = 2 (gap) + 14 (name) + 2 + row-gap 0 + 2     = 20px */
+  grid-template-columns: repeat(auto-fill, minmax(calc(var(--grid-icon) + 4px), 1fr));
+  gap: 0 16px;
+  height: 420px;
   overflow-y: auto;
-  padding: 0.5rem;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 4px;
+  /* The scrollbar only takes width on the right; reserving a matching gutter on the
+     left keeps the portraits centred. Thin + themed so the gutter stays small. */
+  scrollbar-gutter: stable both-edges;
+  scrollbar-width: thin;
+  scrollbar-color: var(--black) var(--white);
+  align-content: start;
+  padding: 12px;
 }
 
 .champion-cell {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.25rem;
-  padding: 0.35rem 0.15rem;
+  gap: 2px;
+  min-width: 0;
+  padding: 0;
   background: transparent;
-  border-color: transparent;
+  border: var(--border-thin) solid transparent;
+  border-radius: 0;
+  transition: transform 0.12s, box-shadow 0.12s;
 }
 
 .champion-cell:hover:not(:disabled) {
-  background: var(--panel-light);
-  border-color: var(--gold);
+  background: var(--white);
+  border-color: var(--black);
+  transform: translate(-2px, -2px);
+  box-shadow: var(--shadow-3);
+}
+
+.champion-cell:disabled {
+  cursor: default;
 }
 
 .champion-cell--used {
-  cursor: default;
-  opacity: 0.35;
+  opacity: var(--opacity-off);
 }
 
 .champion-cell--used .champion-cell-icon {
@@ -315,13 +397,15 @@
 }
 
 .champion-cell-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 3px;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
 }
 
 .champion-cell-name {
-  font-size: 0.7rem;
+  font-size: 12px;
+  line-height: 14px;
+  font-weight: 600;
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -331,134 +415,157 @@
 .champion-grid-empty {
   grid-column: 1 / -1;
   text-align: center;
-  padding: 1.5rem 0;
+  padding: 24px 0;
 }
 
-/* ===== Recommendations panel ===== */
+/* ===== Recommendations bar (thin, fixed to the bottom of the viewport) ===== */
 
 .recs-panel {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 0.75rem;
+  --accent: var(--cobalt);
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--white);
+  border-top: var(--border-thick) solid var(--black);
+  box-shadow: 0 -4px 0 var(--black);
+  padding: 8px var(--gutter);
+}
+
+.recs-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 16px;
 }
 
 .recs-header {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 10px;
 }
 
-.recs-header h2 {
-  font-size: 1.05rem;
+.recs-header .mc-heading {
+  margin: 0;
+  border-bottom-color: var(--black); /* neutral: cobalt is reserved for your team */
 }
 
-.recs-spinner {
-  width: 14px;
-  height: 14px;
-  border: 2px solid var(--border);
-  border-top-color: var(--gold);
-  border-radius: 50%;
-  animation: recs-spin 0.8s linear infinite;
-}
-
-@keyframes recs-spin {
-  to {
-    transform: rotate(360deg);
-  }
+/* Your-role selector sits at the right end of the top row. */
+.recs-controls .role-tabs {
+  margin-left: auto;
 }
 
 .recs-subtitle {
-  font-size: 0.8rem;
-  margin: 0.25rem 0 0.6rem;
-  opacity: 0.85;
+  font-size: 12px;
+  line-height: 1.35;
 }
 
 .recs-list {
+  --recs-gap: 10px;
+  min-width: 0;
   list-style: none;
   margin: 0;
-  padding: 0;
+  padding: 2px 2px 6px;
   display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  counter-reset: rec;
+  gap: var(--recs-gap);
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--black) var(--white);
   transition: opacity 0.15s;
 }
 
 .recs-list--stale {
-  opacity: 0.45;
+  opacity: var(--opacity-off);
 }
 
-.recs-row {
-  display: grid;
-  grid-template-columns: auto 32px 1fr 42px;
-  grid-template-areas:
-    'rank icon name score'
-    'rank icon bar bar';
-  column-gap: 0.5rem;
-  align-items: center;
-  counter-increment: rec;
+/* Scrollbar ABOVE the portraits (so the score note sits right under the scores):
+   flip the scroll container vertically, which moves its scrollbar to the top, then
+   flip each item back upright. The 6px padding-bottom ends up between scrollbar and icons. */
+.recs-list {
+  transform: scaleY(-1);
 }
 
-.recs-row::before {
-  content: counter(rec);
-  grid-area: rank;
-  width: 1.2rem;
-  text-align: right;
-  font-size: 0.8rem;
-  color: var(--gold);
+/* Exactly 15 items fill the visible width; the rest scroll horizontally. */
+.recs-list > li {
+  transform: scaleY(-1);
+  flex: 0 0 max(44px, calc((100% - 14 * var(--recs-gap)) / 15));
+  min-width: 0;
 }
 
-.recs-row-icon {
-  grid-area: icon;
-  width: 32px;
-  height: 32px;
-  border-radius: 3px;
-}
-
-.recs-row-name {
-  grid-area: name;
-  font-size: 0.85rem;
-  color: var(--gold-bright);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.recs-row-score {
-  grid-area: score;
-  font-size: 0.8rem;
-  text-align: right;
-}
-
-.recs-row-bar {
-  grid-area: bar;
-  height: 4px;
-  background: var(--border);
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.recs-row-bar-fill {
-  display: block;
-  height: 100%;
-  background: linear-gradient(90deg, var(--gold), var(--gold-bright));
-}
-
-.recs-error {
+.recs-item {
+  width: 100%;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  padding: 0.5rem 0;
+  align-items: stretch;
+  gap: 4px;
+  background: none;
+  border: none;
 }
 
-.recs-error button {
-  align-self: flex-start;
-  padding: 0.3rem 0.9rem;
+.recs-item[aria-pressed='true'] .recs-item-icon {
+  border-color: var(--accent);
 }
 
-.recs-footnote {
-  font-size: 0.7rem;
-  opacity: 0.6;
-  margin: 0.75rem 0 0;
+/* Champion-name label; position: fixed so the list's horizontal scroll can't clip it. */
+.recs-tooltip {
+  position: fixed;
+  z-index: 20;
+  transform: translate(-50%, -100%);
+  pointer-events: none;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 8px;
+  background: var(--white);
+  border: var(--border-thin) solid var(--black);
+  box-shadow: var(--shadow-2);
+}
+
+.recs-item-icon {
+  width: 100%;
+  aspect-ratio: 1;
+  height: auto;
+  border: var(--border-thin) solid var(--black);
+}
+
+.recs-item-bar {
+  height: 7px;
+  border: 1px solid var(--black);
+  background: var(--ivory);
+}
+
+.recs-item-bar-fill {
+  display: block;
+  height: 100%;
+  background: var(--black);
+}
+
+.recs-item-score {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.recs-error,
+.recs-empty {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.recs-error .mc-btn {
+  font-size: 12px;
+  padding: 2px 10px;
+  box-shadow: var(--shadow-2);
+}
+
+@media (max-width: 720px) {
 }

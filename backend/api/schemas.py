@@ -13,6 +13,7 @@ class DraftStateRequest(BaseModel):
 class ChampionInfo(BaseModel):
     name: str
     sprite_url: str
+    roles: list[Position] = Field(default_factory=list)
 
 
 class ChampionRecommendation(BaseModel):

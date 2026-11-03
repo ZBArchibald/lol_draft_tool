@@ -22,8 +22,12 @@ interface Props {
   recsError: string | null
   onRecsRetry: () => void
   role: Position
+  onRoleChange: (role: Position) => void
 }
 
+// Champion-select shape: your picks | champion grid | enemy picks, with each
+// team's bans under its column; recommendations are a bar fixed to the bottom.
+// The three columns hold at every width (they shrink, never stack).
 export default function DraftBoard({
   champions,
   draft,
@@ -36,29 +40,13 @@ export default function DraftBoard({
   recsError,
   onRecsRetry,
   role,
+  onRoleChange,
 }: Props) {
   const draftEmpty =
     draft.bluePicks.every((id) => id === null) && draft.redPicks.every((id) => id === null)
 
-  // Browsing mode (a slot is active): champion grid in the center, recs in the
-  // side column. Idle mode: no champion can be input, so the grid hides and
-  // the recommendations take the center instead.
-  const browsing = activeSlot !== null
-
-  const recsPanel = (
-    <RecommendationsPanel
-      recs={recs}
-      loading={recsLoading}
-      error={recsError}
-      champions={champions}
-      role={role}
-      draftEmpty={draftEmpty}
-      onRetry={onRecsRetry}
-    />
-  )
-
   return (
-    <div className={`draft-board${browsing ? '' : ' draft-board--idle'}`}>
+    <div className="draft-board">
       <TeamColumn
         team="blue"
         picks={draft.bluePicks}
@@ -66,16 +54,14 @@ export default function DraftBoard({
         activeSlot={activeSlot}
         onSlotClick={onSlotClick}
       />
-      {browsing ? (
+      <div className="draft-board-center">
         <ChampionGrid
           champions={champions}
           usedChampionIds={usedChampionIds}
           activeSlot={activeSlot}
           onChampionClick={onChampionClick}
         />
-      ) : (
-        <div className="recs-center">{recsPanel}</div>
-      )}
+      </div>
       <TeamColumn
         team="red"
         picks={draft.redPicks}
@@ -83,23 +69,30 @@ export default function DraftBoard({
         activeSlot={activeSlot}
         onSlotClick={onSlotClick}
       />
-      {browsing && recsPanel}
-      <div className="ban-rows">
-        <BanRow
-          team="blue"
-          bans={draft.blueBans}
-          champions={champions}
-          activeSlot={activeSlot}
-          onSlotClick={onSlotClick}
-        />
-        <BanRow
-          team="red"
-          bans={draft.redBans}
-          champions={champions}
-          activeSlot={activeSlot}
-          onSlotClick={onSlotClick}
-        />
-      </div>
+      <BanRow
+        team="blue"
+        bans={draft.blueBans}
+        champions={champions}
+        activeSlot={activeSlot}
+        onSlotClick={onSlotClick}
+      />
+      <BanRow
+        team="red"
+        bans={draft.redBans}
+        champions={champions}
+        activeSlot={activeSlot}
+        onSlotClick={onSlotClick}
+      />
+      <RecommendationsPanel
+        recs={recs}
+        loading={recsLoading}
+        error={recsError}
+        champions={champions}
+        role={role}
+        onRoleChange={onRoleChange}
+        draftEmpty={draftEmpty}
+        onRetry={onRecsRetry}
+      />
     </div>
   )
 }

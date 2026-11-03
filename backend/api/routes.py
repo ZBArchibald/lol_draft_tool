@@ -10,7 +10,7 @@ from backend.api.schemas import (
 )
 from backend.db.queries import champion_dictionary_from_db
 from backend.domain.draft_state import DraftState
-from backend.services.draft_service import recommend_champions
+from backend.services.draft_service import get_champion_positions, recommend_champions
 
 logger = logging.getLogger(__name__)
 
@@ -23,8 +23,9 @@ champions_router = APIRouter(prefix="/api/champions", tags=["champions"])
 # those calls would block the event loop and stall every other request.
 @champions_router.get("")
 def serve_champion_resources() -> dict[int, ChampionInfo]:
+    positions = get_champion_positions()
     return {
-        champ_id: ChampionInfo(name=name, sprite_url=sprite_url)
+        champ_id: ChampionInfo(name=name, sprite_url=sprite_url, roles=positions.get(champ_id, []))
         for champ_id, (name, sprite_url) in champion_dictionary_from_db().items()
     }
 

@@ -210,24 +210,36 @@ def upsert_champion_stats(
 
 # draft_service queries
 
-def get_candidate_champions(role: str, minimum_rolerate: float) -> list[int]:
-    """Champions whose share of games played in `role` (games in role / that champion's
-    total games across all roles) meets `minimum_rolerate`. `role` is a raw Riot token."""
+def get_champion_roles(minimum_rolerate: float) -> dict[int, list[str]]:
+    """Returns champ_id -> raw Riot role tokens the champion plays at least
+    `minimum_rolerate` of its games in."""
     with db_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(
             """
-            SELECT champ_id FROM champion_role_stats
-            WHERE role = %s
-            AND games::float / (
-                SELECT SUM(games) FROM champion_role_stats other
-                WHERE other.champ_id = champion_role_stats.champ_id
-            ) >= %s
+            SELECT champ_id, role FROM (
+                SELECT champ_id, role,
+                    games::float / SUM(games) OVER (PARTITION BY champ_id) AS rolerate
+                FROM champion_role_stats
+            ) shares
+            WHERE rolerate >= %s
             """,
-            (role, minimum_rolerate),
+            (minimum_rolerate,),
         )
-        rows = cursor.fetchall()
-        return [row[0] for row in rows]
+        roles: dict[int, list[str]] = {}
+        for champ_id, role in cursor.fetchall():
+            roles.setdefault(champ_id, []).append(role)
+        return roles
+
+
+def get_candidate_champions(role: str, minimum_rolerate: float) -> list[int]:
+    """Champions whose share of games played in `role` meets `minimum_rolerate`.
+    `role` is a raw Riot token."""
+    return [
+        champ_id
+        for champ_id, roles in get_champion_roles(minimum_rolerate).items()
+        if role in roles
+    ]
 
 
 def get_winrates(champions: list[int], role: str) -> dict[int, float]:
