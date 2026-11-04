@@ -6,15 +6,18 @@
 /* Shared portrait size: one recommendation item (15 across the bar, 14 gaps of
    10px). The champion grid reuses it so both sets of portraits match. */
 :root {
-  /* --layout-width is the true layout width under viewportScale.ts's zoom (vw isn't). */
-  --recs-icon: max(44px, calc((var(--layout-width, 100vw) - 2 * var(--gutter) - 140px) / 15)); /* 44px floor for phones */
+  /* Content width = the board's: the true layout width under viewportScale.ts's zoom
+     (vw isn't compensated) minus the gutters. Portraits are 15-across of the 1280px design
+     (~73px) at most, so a layout wider than the design adds grid columns / visible
+     recommendations instead of growing the portraits and overflowing the height. */
+  --content-width: calc(var(--layout-width, 100vw) - 2 * var(--gutter));
+  --recs-icon: clamp(44px, calc((var(--content-width) - 140px) / 15), 73px); /* 44px floor for phones */
   --grid-icon: max(52px, var(--recs-icon)); /* floor keeps the grid usable on phones */
 }
 
 .app {
   position: relative;
   z-index: 2; /* above the carpet */
-  max-width: 1200px;
   margin: 0 auto;
   /* room for the fixed recommendations bar, whose height scales with its 15-across items */
   padding: 24px var(--gutter) calc(var(--recs-icon) + 150px);
@@ -525,6 +528,14 @@
   border-bottom-color: var(--black); /* neutral: cobalt is reserved for your team */
 }
 
+/* Bar background spans the screen; its contents line up with the board above. */
+.recs-panel > :not(.recs-tooltip) {
+  width: 100%;
+  max-width: var(--content-width);
+  margin-left: auto;
+  margin-right: auto;
+}
+
 /* Your-role selector sits at the right end of the top row. */
 .recs-controls .role-tabs {
   margin-left: auto;
@@ -560,10 +571,11 @@
   transform: scaleY(-1);
 }
 
-/* Exactly 15 items fill the visible width; the rest scroll horizontally. */
+/* 15 items fill the 1280px design width (same --recs-icon size as the grid); wider layouts
+   show more of them rather than bigger ones. The rest scroll horizontally. */
 .recs-list > li {
   transform: scaleY(-1);
-  flex: 0 0 max(44px, calc((100% - 14 * var(--recs-gap)) / 15));
+  flex: 0 0 var(--recs-icon);
   min-width: 0;
 }
 
@@ -684,105 +696,136 @@
   line-height: 1;
 }
 
-/* ===== Short layout (landscape phones; set by viewportScale.ts) =====
-   ~340px of usable height: shrink the header and side columns so the whole board
-   fits one screen, let the grid take the remaining height, and un-pin the
-   recommendations so they scroll below the board instead of covering it. */
+/* ===== Compact layout (phones held sideways; set by viewportScale.ts) =====
+   Designed on a 960x540 canvas (scaled ~0.6 on a phone) with larger type and tap
+   targets than the full layout. Fixed heights so it always fits one screen:
+   header + board + the pinned recommendations bar. */
 
-:root[data-layout='short'] .app {
-  /* side-column budget: 5 pick slots share what's left after header, titles and bans */
-  --slot-h: max(30px, calc((var(--layout-height) - 170px) / 5));
-  padding: 8px var(--gutter) 16px;
+:root[data-layout='compact'] .app {
+  /* fixed recommendations bar: 3px border + 12px padding + 48px role row + 6px gap +
+     list (56px portrait + bar + score ~ 86px, + padding/scrollbar ~16px) */
+  --bar-h: 176px;
+  --recs-icon: 56px;
+  --board-h: calc(var(--layout-height) - 44px - var(--bar-h) - 10px); /* 44 = padding + header */
+  /* 5 pick slots share the column after its title (~26px), the bans (~68px) and gaps */
+  --slot-h: max(30px, calc((var(--board-h) - 26px - 68px - 24px) / 5));
+  --grid-icon: 60px;
+  padding: 8px var(--gutter) calc(var(--bar-h) + 10px);
 }
 
-:root[data-layout='short'] .app-header {
-  margin-bottom: 8px;
+:root[data-layout='compact'] .app-header {
+  margin-bottom: 6px;
 }
 
-:root[data-layout='short'] .app-title {
-  font-size: 22px;
-  -webkit-text-stroke-width: 1px;
-  filter: drop-shadow(2px 2px 0 var(--black));
+:root[data-layout='compact'] .app-title {
+  font-size: 26px;
+  -webkit-text-stroke-width: 1.5px;
+  filter: drop-shadow(3px 3px 0 var(--black));
 }
 
-:root[data-layout='short'] .draft-board {
-  grid-template-columns: 160px minmax(0, 1fr) 160px;
+:root[data-layout='compact'] .draft-board {
+  grid-template-rows: auto auto;
   gap: 10px 16px;
 }
 
-/* The grid window fills the screen height below the header (8px padding + ~30px
-   header + room for the window's shadow); the grid flexes into whatever the
-   toolbar leaves, however many rows it wraps to. */
-:root[data-layout='short'] .draft-board-center {
-  height: calc(var(--layout-height) - 50px);
+:root[data-layout='compact'] .draft-board-center {
+  height: var(--board-h);
 }
 
-:root[data-layout='short'] .champion-window {
+:root[data-layout='compact'] .champion-window {
   height: 100%;
   display: flex;
   flex-direction: column;
 }
 
-:root[data-layout='short'] .team-column {
-  gap: 6px;
-}
-
-:root[data-layout='short'] .team-column-title,
-:root[data-layout='short'] .ban-row-label {
-  font-size: 12px;
-  margin-bottom: 0;
-}
-
-:root[data-layout='short'] .pick-slot {
-  min-height: 0;
-  height: var(--slot-h);
-  padding: 3px;
-}
-
-:root[data-layout='short'] .pick-slot-icon {
-  width: calc(var(--slot-h) - 10px);
-  height: calc(var(--slot-h) - 10px);
-}
-
-:root[data-layout='short'] .pick-slot-name {
-  font-size: 13px;
-}
-
-:root[data-layout='short'] .pick-slot-placeholder {
-  font-size: 18px;
-}
-
-:root[data-layout='short'] .ban-row {
-  gap: 4px;
-}
-
-:root[data-layout='short'] .ban-slot {
-  width: 28px;
-  height: 28px;
-}
-
-:root[data-layout='short'] .champion-toolbar {
-  padding: 6px 8px;
-  gap: 6px 10px;
-}
-
-:root[data-layout='short'] .champion-search {
-  padding: 4px 8px;
-  font-size: 13px;
-}
-
-:root[data-layout='short'] .champion-grid {
+:root[data-layout='compact'] .champion-grid {
   flex: 1;
   min-height: 0;
   height: auto;
   padding: 8px;
 }
 
-/* recommendations: in the page flow, full board width, below the bans */
-:root[data-layout='short'] .recs-panel {
-  position: static;
-  grid-column: 1 / -1;
-  border: var(--border-thick) solid var(--black);
-  box-shadow: var(--shadow-5);
-  padding: 8px 12px;
+:root[data-layout='compact'] .champion-cell-name {
+  font-size: 16px; /* ~10px on screen after the ~0.63 scale */
+  line-height: 19px;
 }
+
+:root[data-layout='compact'] .team-column {
+  gap: 6px;
+}
+
+:root[data-layout='compact'] .team-column-title,
+:root[data-layout='compact'] .ban-row-label {
+  font-size: 14px;
+  margin-bottom: 0;
+}
+
+:root[data-layout='compact'] .pick-slot {
+  min-height: 0;
+  height: var(--slot-h);
+  padding: 3px;
+}
+
+:root[data-layout='compact'] .pick-slot-icon {
+  width: calc(var(--slot-h) - 10px);
+  height: calc(var(--slot-h) - 10px);
+}
+
+:root[data-layout='compact'] .pick-slot-name {
+  font-size: 16px;
+}
+
+:root[data-layout='compact'] .ban-row {
+  gap: 4px;
+}
+
+:root[data-layout='compact'] .ban-slot {
+  width: 36px;
+  height: 36px;
+}
+
+:root[data-layout='compact'] .champion-toolbar {
+  padding: 6px 8px;
+}
+
+:root[data-layout='compact'] .champion-search {
+  min-height: 48px;
+  font-size: 16px;
+}
+
+/* big tap targets: ~30px on screen after the ~0.6 scale */
+:root[data-layout='compact'] .role-tabs .mc-tab {
+  min-height: 48px;
+  min-width: 56px;
+  padding: 6px 12px;
+  font-size: 16px;
+}
+
+:root[data-layout='compact'] .control-label {
+  font-size: 16px;
+}
+
+/* recommendations bar: still pinned, fixed height; the score note is dropped for room */
+:root[data-layout='compact'] .recs-panel {
+  height: var(--bar-h);
+  gap: 6px;
+  padding: 6px var(--gutter);
+}
+
+:root[data-layout='compact'] .recs-subtitle {
+  display: none;
+}
+
+:root[data-layout='compact'] .recs-header .mc-heading {
+  font-size: 18px;
+}
+
+:root[data-layout='compact'] .recs-item-score {
+  font-size: 15px;
+}
+
+:root[data-layout='compact'] .recs-tooltip {
+  font-size: 18px;
+  padding: 5px 10px;
+}
+
