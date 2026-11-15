@@ -31,3 +31,12 @@ app.add_middleware(
 
 app.include_router(champions_router)
 app.include_router(recommendation_router)
+
+
+# Pinged every 5 minutes by a Cloud Scheduler job so Cloud Run keeps an instance warm and
+# first-time visitors skip the cold start. It lives outside /api/ so the rate limiter ignores
+# it, and it deliberately never touches the DB so the pings don't keep Neon awake.
+# (Not /healthz: Cloud Run's front end reserves some paths ending in "z".)
+@app.get("/health")
+def health() -> dict[str, str]:
+    return {"status": "ok"}
