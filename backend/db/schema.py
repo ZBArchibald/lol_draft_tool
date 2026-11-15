@@ -30,6 +30,7 @@ SCHEMA_STATEMENTS = (
     """
     CREATE TABLE IF NOT EXISTS matches (
         match_id TEXT PRIMARY KEY,
+        patch TEXT NOT NULL,
 
         blueside_win BOOLEAN,
 
@@ -50,20 +51,22 @@ SCHEMA_STATEMENTS = (
     CREATE TABLE IF NOT EXISTS champion_role_stats (
         champ_id INTEGER,
         role TEXT,
+        patch TEXT,
         wins INTEGER DEFAULT 0,
         games INTEGER DEFAULT 0,
-        PRIMARY KEY (champ_id, role)
+        PRIMARY KEY (champ_id, role, patch)
     )
     """,
     """
     CREATE TABLE IF NOT EXISTS champion_relationships (
         champ_id INTEGER,
         other_champ_id INTEGER,
+        patch TEXT,
         wins_as_ally INTEGER DEFAULT 0,
         games_as_ally INTEGER DEFAULT 0,
         wins_as_opponent INTEGER DEFAULT 0,
         games_as_opponent INTEGER DEFAULT 0,
-        PRIMARY KEY (champ_id, other_champ_id)
+        PRIMARY KEY (champ_id, other_champ_id, patch)
     )
     """
     

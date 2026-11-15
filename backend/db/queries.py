@@ -110,38 +110,28 @@ def get_processed_match_ids(match_ids: list[str]) -> set[str]:
         return {row[0] for row in cursor.fetchall()}
 
 
-def clear_matches(conn: psycopg.Connection) -> None:
-    conn.execute("DELETE FROM matches")
-
-
-def clear_champion_relationships(conn: psycopg.Connection) -> None:
-    conn.execute("DELETE FROM champion_relationships")
-
-
-def clear_champion_stats(conn: psycopg.Connection) -> None:
-    conn.execute("DELETE FROM champion_role_stats")
-
-
-def clear_ladder_players(conn: psycopg.Connection) -> None:
-    conn.execute("DELETE FROM ladder_players")
+def delete_data_outside_patches(conn: psycopg.Connection, patches: list[str]) -> None:
+    """Deletes matches and stats from every patch not in `patches`."""
+    for table in ("matches", "champion_role_stats", "champion_relationships"):
+        conn.execute(f"DELETE FROM {table} WHERE patch <> ALL(%s)", (patches,))
 
 
 def insert_matches(conn: psycopg.Connection, rows: list[dict]) -> None:
-    """rows: dicts with keys match_id, blueside_win, and
+    """rows: dicts with keys match_id, patch, blueside_win, and
     {blueside,redside}_{top,jungle,middle,bottom,support}_champ_id"""
     if not rows:
         return
     conn.cursor().executemany(
         """
         INSERT INTO matches (
-            match_id, blueside_win,
+            match_id, patch, blueside_win,
             blueside_top_champ_id, blueside_jungle_champ_id, blueside_middle_champ_id,
             blueside_bottom_champ_id, blueside_support_champ_id,
             redside_top_champ_id, redside_jungle_champ_id, redside_middle_champ_id,
             redside_bottom_champ_id, redside_support_champ_id
         )
         VALUES (
-            %(match_id)s, %(blueside_win)s,
+            %(match_id)s, %(patch)s, %(blueside_win)s,
             %(blueside_top_champ_id)s, %(blueside_jungle_champ_id)s, %(blueside_middle_champ_id)s,
             %(blueside_bottom_champ_id)s, %(blueside_support_champ_id)s,
             %(redside_top_champ_id)s, %(redside_jungle_champ_id)s, %(redside_middle_champ_id)s,
@@ -153,18 +143,11 @@ def insert_matches(conn: psycopg.Connection, rows: list[dict]) -> None:
     )
 
 
-def clear_player_data(conn: psycopg.Connection) -> None:
-    clear_matches(conn)
-    clear_champion_relationships(conn)
-    clear_champion_stats(conn)
-    clear_ladder_players(conn)
-
-
 def upsert_champion_relationships(
     conn: psycopg.Connection,
-    rows: list[tuple[int, int, int, int, int, int]],
+    rows: list[tuple[int, int, str, int, int, int, int]],
 ) -> None:
-    """rows: (champ_id, other_champ_id, wins_as_ally, games_as_ally, wins_as_opponent, games_as_opponent)"""
+    """rows: (champ_id, other_champ_id, patch, wins_as_ally, games_as_ally, wins_as_opponent, games_as_opponent)"""
     if not rows:
         return
     conn.cursor().executemany(
@@ -172,13 +155,14 @@ def upsert_champion_relationships(
         INSERT INTO champion_relationships (
             champ_id,
             other_champ_id,
+            patch,
             wins_as_ally,
             games_as_ally,
             wins_as_opponent,
             games_as_opponent
         )
-        VALUES (%s, %s, %s, %s, %s, %s)
-        ON CONFLICT(champ_id, other_champ_id)
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
+        ON CONFLICT(champ_id, other_champ_id, patch)
         DO UPDATE SET
             wins_as_ally = champion_relationships.wins_as_ally + excluded.wins_as_ally,
             games_as_ally = champion_relationships.games_as_ally + excluded.games_as_ally,
@@ -191,16 +175,16 @@ def upsert_champion_relationships(
 
 def upsert_champion_stats(
     conn: psycopg.Connection,
-    rows: list[tuple[int, str, int, int]],
+    rows: list[tuple[int, str, str, int, int]],
 ) -> None:
-    """rows: (champ_id, role, wins, games) — role is a raw Riot teamPosition token"""
+    """rows: (champ_id, role, patch, wins, games) — role is a raw Riot teamPosition token"""
     if not rows:
         return
     conn.cursor().executemany(
         """
-        INSERT INTO champion_role_stats (champ_id, role, wins, games)
-        VALUES (%s, %s, %s, %s)
-        ON CONFLICT(champ_id, role)
+        INSERT INTO champion_role_stats (champ_id, role, patch, wins, games)
+        VALUES (%s, %s, %s, %s, %s)
+        ON CONFLICT(champ_id, role, patch)
         DO UPDATE SET
             wins = champion_role_stats.wins + excluded.wins,
             games = champion_role_stats.games + excluded.games
@@ -212,15 +196,16 @@ def upsert_champion_stats(
 
 def get_champion_roles(minimum_rolerate: float) -> dict[int, list[str]]:
     """Returns champ_id -> raw Riot role tokens the champion plays at least
-    `minimum_rolerate` of its games in."""
+    `minimum_rolerate` of its games in, across all retained patches."""
     with db_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(
             """
             SELECT champ_id, role FROM (
                 SELECT champ_id, role,
-                    games::float / SUM(games) OVER (PARTITION BY champ_id) AS rolerate
+                    SUM(games)::float / SUM(SUM(games)) OVER (PARTITION BY champ_id) AS rolerate
                 FROM champion_role_stats
+                GROUP BY champ_id, role
             ) shares
             WHERE rolerate >= %s
             """,
@@ -251,8 +236,9 @@ def get_winrates(champions: list[int], role: str) -> dict[int, float]:
     with db_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT champ_id, wins, games FROM champion_role_stats "
-            "WHERE role = %s AND champ_id = ANY(%s)",
+            "SELECT champ_id, SUM(wins), SUM(games) FROM champion_role_stats "
+            "WHERE role = %s AND champ_id = ANY(%s) "
+            "GROUP BY champ_id",
             (role, champions),
         )
         return {
@@ -273,10 +259,13 @@ def get_champion_relationships_bulk(
         cursor = conn.cursor()
         cursor.execute(
             """
-            SELECT champ_id, other_champ_id, wins_as_ally, games_as_ally, wins_as_opponent, games_as_opponent
+            SELECT champ_id, other_champ_id,
+                SUM(wins_as_ally), SUM(games_as_ally),
+                SUM(wins_as_opponent), SUM(games_as_opponent)
             FROM champion_relationships
             WHERE champ_id = ANY(%s)
             AND other_champ_id = ANY(%s)
+            GROUP BY champ_id, other_champ_id
             """,
             (champions, other_champions),
         )

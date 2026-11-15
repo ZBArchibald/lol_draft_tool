@@ -139,7 +139,7 @@ All commands are subcommands of a single `ldt` console script:
 ldt init-db              # create Postgres schema
 ldt update-ladder        # refresh Challenger + Grandmaster player list from Riot API
 ldt run-match-sync       # ingest match data for all ladder players
-ldt daily-maintenance    # on a new patch, clear stale data; refresh champion list
+ldt daily-maintenance    # prune data older than the last 3 patches; refresh champion list
 ```
 
 ## Running the app

@@ -1,17 +1,17 @@
 import logging
 
+from backend.core.config import PATCHES_RETAINED
 from backend.db.connection import db_connection
 from backend.db.queries import (
     get_ladder_puuids,
     get_last_synced_match_id,
-    get_metadata_value,
     get_processed_match_ids,
     insert_matches,
     update_last_synced_match_id,
     upsert_champion_relationships,
     upsert_champion_stats,
 )
-from backend.external.riot_api import get_match_data, get_match_ids
+from backend.external.riot_api import get_match_data, get_match_ids, get_recent_patches
 
 LOG = logging.getLogger(__name__)
 
@@ -53,26 +53,29 @@ _EMPTY_RELATIONSHIP_ROW = {
 
 def sync_all_ladder_matches(batch_size: int = 20) -> None:
     puuids = get_ladder_puuids()
-    LOG.info("Starting match sync for %d ladder players", len(puuids))
+    patches = get_recent_patches(PATCHES_RETAINED)
+    LOG.info(
+        "Starting match sync for %d ladder players (patches: %s)",
+        len(puuids), ", ".join(patches),
+    )
 
     for count, puuid in enumerate(puuids, start=1):
-        sync_player_matches(puuid, batch_size)
+        sync_player_matches(puuid, patches, batch_size)
         LOG.info("Player %d/%d synced", count, len(puuids))
     LOG.info("Match sync complete")
 
 
-def sync_player_matches(puuid: str, batch_size: int = 20) -> None:
-    current_patch = get_metadata_value("current_patch")
+def sync_player_matches(puuid: str, patches: list[str], batch_size: int = 20) -> None:
     last_synced_match_id = get_last_synced_match_id(puuid)
-    LOG.info("Syncing player %s (patch: %s)", puuid, current_patch)
+    LOG.info("Syncing player %s", puuid)
     start_index = 0
     stop_sync = False
 
     newest_match_id: str | None = None
     match_ids: list[str] = []
     match_rows: list[dict] = []
-    stats: dict[int, dict[str, int]] = {}
-    relationships: dict[tuple[int, int], dict[str, int]] = {}
+    stats: dict[tuple[int, str, str], dict[str, int]] = {}
+    relationships: dict[tuple[int, int, str], dict[str, int]] = {}
 
     while not stop_sync:
         match_ids_batch = get_match_ids(puuid, start_index, batch_size)
@@ -98,16 +101,17 @@ def sync_player_matches(puuid: str, batch_size: int = 20) -> None:
                 continue
 
             match_data = get_match_data(match_id)
+            patch = get_match_patch(match_data)
 
-            if not is_on_current_patch(match_data, current_patch):
-                LOG.debug("Stopping sync for %s: match %s not on current patch", puuid, match_id)
+            if patch not in patches:
+                LOG.debug("Stopping sync for %s: match %s is from patch %s, outside the retained patches", puuid, match_id, patch)
                 stop_sync = True
                 break
 
             LOG.debug("Aggregating match %s", match_id)
             match_ids.append(match_id)
-            match_rows.append(build_match_row(match_id, match_data))
-            aggregate_match(match_data, stats, relationships)
+            match_rows.append(build_match_row(match_id, patch, match_data))
+            aggregate_match(match_data, patch, stats, relationships)
             if len(match_ids) % 10 == 0:
                 LOG.info("Fetched %d matches for %s", len(match_ids), puuid)
 
@@ -117,18 +121,17 @@ def sync_player_matches(puuid: str, batch_size: int = 20) -> None:
     LOG.info("Finished player %s: %d new matches processed", puuid, len(match_ids))
 
 
-def is_on_current_patch(match_data: dict, current_patch: str) -> bool:
+def get_match_patch(match_data: dict) -> str:
     #retrive and build truncated patch from match_data
     major, minor, *_ = match_data["info"]["gameVersion"].split(".")
-    match_patch = f"{major}.{minor}"
-
-    return match_patch == current_patch
+    return f"{major}.{minor}"
 
 
 def aggregate_match(
     match_data: dict,
-    stats: dict[tuple[int, str], dict[str, int]],
-    relationships: dict[tuple[int, int], dict[str, int]],
+    patch: str,
+    stats: dict[tuple[int, str, str], dict[str, int]],
+    relationships: dict[tuple[int, int, str], dict[str, int]],
 ) -> None:
     # excludes remakes and other games where teamPosition wasn't assigned, so
     # they're skipped consistently by both champion_stats and champion_relationships
@@ -138,7 +141,7 @@ def aggregate_match(
     ]
 
     for participant in participants:
-        key = (participant["championId"], participant["teamPosition"])
+        key = (participant["championId"], participant["teamPosition"], patch)
         if key not in stats:
             stats[key] = {"wins": 0, "games": 0}
         stats[key]["wins"] += int(participant["win"])
@@ -148,7 +151,7 @@ def aggregate_match(
         for participant_b in participants:
             if participant_a is participant_b:
                 continue
-            key = (participant_a["championId"], participant_b["championId"])
+            key = (participant_a["championId"], participant_b["championId"], patch)
             row = relationships.setdefault(key, dict(_EMPTY_RELATIONSHIP_ROW))
             if participant_a["teamId"] == participant_b["teamId"]:
                 row["wins_as_ally"] += int(participant_a["win"])
@@ -158,8 +161,8 @@ def aggregate_match(
                 row["games_as_opponent"] += 1
 
 
-def build_match_row(match_id: str, match_data: dict) -> dict:
-    row = dict(_EMPTY_MATCH_ROW, match_id=match_id)
+def build_match_row(match_id: str, patch: str, match_data: dict) -> dict:
+    row = dict(_EMPTY_MATCH_ROW, match_id=match_id, patch=patch)
 
     for participant in match_data["info"]["participants"]:
         suffix = _TEAM_POSITION_SUFFIX.get(participant["teamPosition"])
@@ -178,8 +181,8 @@ def flush_player_data(
     newest_match_id: str | None,
     match_ids: list[str],
     match_rows: list[dict],
-    stats: dict[tuple[int, str], dict[str, int]],
-    relationships: dict[tuple[int, int], dict[str, int]],
+    stats: dict[tuple[int, str, str], dict[str, int]],
+    relationships: dict[tuple[int, int, str], dict[str, int]],
 ) -> None:
     if newest_match_id is None:
         return
@@ -189,8 +192,8 @@ def flush_player_data(
             upsert_champion_stats(
                 conn,
                 [
-                    (champ_id, role, row["wins"], row["games"])
-                    for (champ_id, role), row in stats.items()
+                    (champ_id, role, patch, row["wins"], row["games"])
+                    for (champ_id, role, patch), row in stats.items()
                 ],
             )
             upsert_champion_relationships(
@@ -199,12 +202,13 @@ def flush_player_data(
                     (
                         champ_id,
                         other_champ_id,
+                        patch,
                         row["wins_as_ally"],
                         row["games_as_ally"],
                         row["wins_as_opponent"],
                         row["games_as_opponent"],
                     )
-                    for (champ_id, other_champ_id), row in relationships.items()
+                    for (champ_id, other_champ_id, patch), row in relationships.items()
                 ],
             )
         update_last_synced_match_id(conn, puuid, newest_match_id)

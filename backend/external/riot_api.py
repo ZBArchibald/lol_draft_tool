@@ -119,7 +119,10 @@ def _make_riot_request(
         return response
 
 
-def get_current_patch() -> str:
+def get_recent_patches(count: int) -> list[str]:
+    """Returns the `count` newest major.minor patches, newest first (e.g.
+    ["15.23", "15.22", "15.21"]). Data Dragon lists full versions newest first,
+    possibly several per patch (hotfixes), so duplicates are skipped."""
     response = requests.get(DATA_DRAGON_VERSIONS_URL, timeout=10)
     response.raise_for_status()
 
@@ -127,15 +130,22 @@ def get_current_patch() -> str:
     if not isinstance(versions, list) or not versions:
         raise ValueError("Unexpected response format from Data Dragon API")
 
-    #truncate patch number
-    major, minor, *_ = versions[0].split(".")
-    return f"{major}.{minor}"
+    patches: list[str] = []
+    for version in versions:
+        #truncate patch number
+        major, minor, *_ = version.split(".")
+        patch = f"{major}.{minor}"
+        if patch not in patches:
+            patches.append(patch)
+            if len(patches) == count:
+                break
+    return patches
 
 
 def champion_table_from_ddragon() -> list[tuple[int, str, str]]:
     """Returns (champ_id, name, sprite_url) for every champion in the current Data Dragon
     version. Uses the full version string (e.g. "14.1.1"), not the truncated major.minor
-    patch that get_current_patch() returns for match-patch comparisons — Data Dragon's CDN
+    patches that get_recent_patches() returns for match-patch comparisons — Data Dragon's CDN
     requires the full version in its URL.
 
     sprite_url points at each champion's single per-champion icon file

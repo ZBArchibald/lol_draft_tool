@@ -1,41 +1,29 @@
 import logging
 
+from backend.core.config import PATCHES_RETAINED
 from backend.db.connection import db_connection
 from backend.db.queries import (
-    clear_player_data,
-    get_metadata_value,
+    delete_data_outside_patches,
     update_metadata,
     upsert_champions,
 )
-from backend.external.riot_api import champion_table_from_ddragon, get_current_patch
+from backend.external.riot_api import champion_table_from_ddragon, get_recent_patches
 
 LOG = logging.getLogger(__name__)
 
 def run_daily_maintenance() -> None:
-    clear_data_on_patch_change()
+    prune_old_patches()
     sync_champion_list()
 
-def clear_data_on_patch_change() -> None:
-    try:
-        previous_patch = get_metadata_value("current_patch")
-    except KeyError:
-        previous_patch = None
+def prune_old_patches() -> None:
+    """Keeps the PATCHES_RETAINED newest patches of data and deletes the rest. Runs
+    every time (not only on a patch change): it's idempotent and cheap."""
+    patches = get_recent_patches(PATCHES_RETAINED)
+    update_metadata("current_patch", patches[0])
+    LOG.info("Retaining patches: %s", ", ".join(patches))
 
-    current_patch = update_current_patch()
-    LOG.info("Current patch: %s", current_patch)
-
-    if previous_patch and previous_patch != current_patch:
-        LOG.info("Patch changed from %s to %s — clearing old match data", previous_patch, current_patch)
-        with db_connection() as conn:
-            clear_player_data(conn)
-    else:
-        LOG.info("No patch change detected")
-
-
-def update_current_patch() -> str:
-    current_patch = get_current_patch()
-    update_metadata("current_patch", current_patch)
-    return current_patch
+    with db_connection() as conn:
+        delete_data_outside_patches(conn, patches)
 
 
 def sync_champion_list() -> None:

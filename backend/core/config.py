@@ -28,6 +28,10 @@ FRONTEND_ORIGINS = [
 RATE_LIMIT_REQUESTS = 100
 RATE_LIMIT_WINDOW_SECONDS = 5 * 60
 
+# Patches of match data to keep: the current patch plus the (PATCHES_RETAINED - 1)
+# before it. Older patches are pruned by daily maintenance.
+PATCHES_RETAINED = 3
+
 QUEUE_ID = 420
 REGION = "na1"
 MATCH_REGION = "americas"
