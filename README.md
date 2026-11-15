@@ -26,7 +26,10 @@ batch ingestion pipeline run by GitHub Actions (right).
 The six Postgres tables, grouped by role. `matches` keeps the full draft in one
 wide row (ten champion slots plus the win label, one training example per row);
 the two aggregate tables are folded from it at ingest so recommendations read
-precomputed win counts.
+precomputed win counts. Every data table carries a `patch` column: the database
+keeps the current patch plus the two before it, the aggregates are stored per patch
+and summed at read time, and daily maintenance deletes whatever falls out of that
+window.
 
 ![Database schema](docs/images/database-schema.svg)
 
@@ -40,15 +43,16 @@ lol_draft_tool/
 |-- Dockerfile                       # backend-only API image for Cloud Run
 |-- .github/
 |   `-- workflows/
-|       |-- daily-maintenance.yml   # cron: detect patch change, refresh ladder
+|       |-- daily-maintenance.yml    # cron: prune old patches, refresh ladder
 |       |-- match-sync.yml           # cron: ingest new Challenger + Grandmaster matches
 |       `-- deploy.yml               # push to main: deploy the API to Cloud Run
 |-- backend/
 |   |-- __init__.py
-|   |-- main.py                      # FastAPI app entrypoint (CORS + router)
+|   |-- main.py                      # FastAPI app entrypoint (CORS, rate limit, router, /health)
 |   |-- cli.py                       # single `ldt` console-script entry point
 |   |-- api/
 |   |   |-- __init__.py
+|   |   |-- rate_limit.py            # per-IP request cap on /api/*
 |   |   |-- routes.py                # /api/champions, /api/recommend
 |   |   `-- schemas.py               # Pydantic request/response models
 |   |-- core/
@@ -84,7 +88,9 @@ lol_draft_tool/
 |       |-- App.tsx                    # all app state (useState)
 |       |-- api.ts                     # transport layer
 |       |-- types.ts                   # TS mirrors of the Pydantic schemas
-|       `-- components/                # DraftBoard, ChampionGrid, etc.
+|       |-- viewportScale.ts           # scales the layout to fit any window
+|       |-- components/                # DraftBoard, ChampionGrid, etc.
+|       `-- theme/                     # design tokens + component styles
 |-- docs/
 |   `-- images/                       # architecture diagrams used in this README
 |       |-- system-overview.svg
@@ -92,8 +98,7 @@ lol_draft_tool/
 |       `-- database-schema.svg
 |-- pyproject.toml
 |-- uv.lock
-|-- README.md
-`-- TODO.md
+`-- README.md
 ```
 
 ## Setup
@@ -161,10 +166,14 @@ npm run dev
 The Vite dev server proxies `/api` to the backend on :8000, so client code uses
 relative paths in development. Two HTTP endpoints back the client:
 
-- `GET /api/champions` — full `champ_id -> {name, sprite_url}` dictionary
-  (fetched once per session/patch so the client can map ids to names/icons)
+- `GET /api/champions` — full `champ_id -> {name, sprite_url, roles}` dictionary
+  (fetched once per session so the client can map ids to names/icons; `roles`
+  lists the positions each champion is viable in)
 - `POST /api/recommend` — deals strictly in `champ_id` ints; returns ranked
   champion suggestions with a single `win_chance` score each
+
+The backend also serves `GET /health`, a database-free liveness check that a
+Cloud Scheduler job pings to keep the deployed API warm.
 
 ## Scheduling (GitHub Actions)
 
