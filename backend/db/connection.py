@@ -18,7 +18,15 @@ def _get_pool() -> ConnectionPool:
                 "DATABASE_URL is not set. Add it to the .env file in the project root, "
                 "e.g. DATABASE_URL=postgresql://user:pass@host/dbname?sslmode=require"
             )
-        _pool = ConnectionPool(DATABASE_URL, min_size=1, max_size=4)
+        # check_connection pings each connection before handing it out, so a connection
+        # Neon dropped while idle (scale-to-zero, restart) is replaced instead of
+        # failing the request that happens to get it
+        _pool = ConnectionPool(
+            DATABASE_URL,
+            min_size=1,
+            max_size=4,
+            check=ConnectionPool.check_connection,
+        )
         atexit.register(_pool.close)
     return _pool
 
